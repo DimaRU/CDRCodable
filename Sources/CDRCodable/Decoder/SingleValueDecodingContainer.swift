@@ -11,12 +11,6 @@ extension _CDRDecoder {
             self.userInfo = userInfo
             self.data = data
         }
-        
-//        func checkCanDecode<T>(_ type: T.Type) throws {
-//            guard self.index <= self.data.endIndex else {
-//                throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unexpected end of data")
-//            }
-//        }
     }
 }
 

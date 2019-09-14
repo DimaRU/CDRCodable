@@ -40,7 +40,7 @@ class CDRCodableEncodingTests: XCTestCase {
     
     func testEncodeString() {
         let value = try! encoder.encode("hello")
-        XCTAssertEqual(value, Data([0x06, 0x00, 0x00, 0x00, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x00, 0, 0]))
+        XCTAssertEqual(value, Data([6, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0, 0, 0]))
     }
     
     func testEncodeArray() {
@@ -49,16 +49,10 @@ class CDRCodableEncodingTests: XCTestCase {
         XCTAssertEqual(value, Data([3, 0, 0, 0, 1, 0, 2, 0, 3, 0, 0, 0]))
     }
     
-//    func testEncodeDictionary() {
-//        let value = try! encoder.encode(["a": 1])
-//        dump(value)
-//        XCTAssertEqual(value, Data([0x81, 0xA1, 0x61, 0x01]))
-//    }
-    
     func testEncodeData() {
         let data = "hello".data(using: .utf8)
         let value = try! encoder.encode(data)
-        XCTAssertEqual(value, Data([0x05, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x00, 0, 0]))
+        XCTAssertEqual(value, Data([5, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0, 0, 0]))
     }
     
     static var allTests = [
@@ -69,6 +63,5 @@ class CDRCodableEncodingTests: XCTestCase {
         ("testEncodeFloat", testEncodeFloat),
         ("testEncodeDouble", testEncodeDouble),
         ("testEncodeArray", testEncodeArray),
-//        ("testEncodeDictionary", testEncodeDictionary),
     ]
 }

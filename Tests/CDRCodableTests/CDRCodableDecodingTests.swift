@@ -49,21 +49,15 @@ class CDRCodableDecodingTests: XCTestCase {
         let value = try! decoder.decode([Int16].self, from: data)
         XCTAssertEqual(value, [1, 2, 3])
     }
-//
-//    func testDecodeDictionary() {
-//        let data = Data([0x83, 0xA1, 0x62, 0x02, 0xA1, 0x61, 0x01, 0xA1, 0x63, 0x03])
-//        let value = try! decoder.decode([String: Int].self, from: data)
-//        XCTAssertEqual(value, ["a": 1, "b": 2, "c": 3])
-//    }
-//
+
     func testDecodeString() {
-        let data = Data([0x06, 0x00, 0x00, 0x00, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0x00])
+        let data = Data([6, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0])
         let value = try! decoder.decode(String.self, from: data)
         XCTAssertEqual(value, "hello")
     }
 
     func testDecodeData() {
-        let data = Data([0x05, 0x00, 0x00, 0x00, 0x68, 0x65, 0x6C, 0x6C, 0x6F])
+        let data = Data([5, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F])
         let value = try! decoder.decode(Data.self, from: data)
         XCTAssertEqual(value, "hello".data(using: .utf8))
     }
@@ -75,8 +69,7 @@ class CDRCodableDecodingTests: XCTestCase {
         ("testDecodeUInt8", testDecodeUInt8),
         ("testDecodeFloat", testDecodeFloat),
         ("testDecodeDouble", testDecodeDouble),
-//        ("testDecodeArray", testDecodeArray),
-//        ("testDecodeDictionary", testDecodeDictionary),
+        ("testDecodeArray", testDecodeArray),
         ("testDecodeString", testDecodeString),
         ("testDecodeData", testDecodeData),
     ]

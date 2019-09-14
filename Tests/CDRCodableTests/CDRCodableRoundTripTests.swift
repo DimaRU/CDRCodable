@@ -2,45 +2,83 @@ import XCTest
 @testable import CDRCodable
 
 class CDRCodableRoundTripTests: XCTestCase {
-    var encoder: CDREncoder!
+    let testDump: [UInt8] =
+        [ 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0xdb, 0xf9, 0x7e, 0x6a,
+          0xbc, 0x74, 0x37, 0x40, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
+          0x6d, 0x73, 0x35, 0x38, 0x33, 0x37, 0x00, 0x00 ]
+    
     var decoder: CDRDecoder!
-    
+    var encoder: CDREncoder!
+
     override func setUp() {
-        self.encoder = CDREncoder()
-        self.decoder = CDRDecoder()
+        decoder = CDRDecoder()
+        encoder = CDREncoder()
     }
 
-    func testRoundTrip() {
-        let value = Airport.example
-        let encoded = try! encoder.encode(value)
-        let decoded = try! decoder.decode(Airport.self, from: encoded)
-
-        XCTAssertEqual(value.name, decoded.name)
-        XCTAssertEqual(value.iata, decoded.iata)
-        XCTAssertEqual(value.icao, decoded.icao)
-        XCTAssertEqual(value.coordinates[0], decoded.coordinates[0], accuracy: 0.01)
-        XCTAssertEqual(value.coordinates[1], decoded.coordinates[1], accuracy: 0.01)
-        XCTAssertEqual(value.runways[0].direction, decoded.runways[0].direction)
-        XCTAssertEqual(value.runways[0].distance, decoded.runways[0].distance)
-        XCTAssertEqual(value.runways[0].surface, decoded.runways[0].surface)
-    }
-
-    func testRoundTripArray() {
-        let count: UInt8 = 100
-        var bytes: [UInt8] = [count, 0, 0, 0]
-        var encoded: [Int8] = []
-        for n in 1...count {
-            bytes.append(n)
-            encoded.append(Int8(n))
+    func testTemp() {
+        struct CommonTemp: Codable, Equatable {
+            let sec: Int32
+            let nanosec: UInt32
+            let frameId: String
+            let temperature: Double
+            let variance: Double
+            let id: String
         }
+        let example = CommonTemp(sec: 0,
+                                 nanosec: 0,
+                                 frameId: "",
+                                 temperature: 23.456,
+                                 variance: 0.0,
+                                 id: "ms5837")
 
-        let data = Data(bytes)
-        let decoded = try! decoder.decode([Int8].self, from: data)
-        XCTAssertEqual(encoded, decoded)
+        let data = Data(testDump)
+        let value = try! decoder.decode(CommonTemp.self, from: data)
+        XCTAssertEqual(value, example)
+
+        let dataBack = try! encoder.encode(value)
+        XCTAssertEqual(dataBack, data)
     }
     
-    static var allTests = [
-        ("testRoundTrip", testRoundTrip),
-        ("testRoundTripArray", testRoundTripArray),
-    ]
+    func testTempNested() {
+        struct RovTime: Codable, Equatable {
+            let sec: Int32
+            let nanosec: UInt32
+        }
+        
+        struct RovHeader: Codable, Equatable {
+            let stamp: RovTime
+            let frameId: String
+        }
+        
+        struct RovTemperature_: Codable, Equatable {
+            let header: RovHeader
+            let temperature: Double
+            let variance: Double
+        }
+        
+        struct RovTemperature: Codable, Equatable {
+            let temperature: RovTemperature_
+            let id: String
+
+            var key: String { return id }
+        }
+        
+        let example = RovTemperature(temperature: RovTemperature_(header: RovHeader(stamp: RovTime(sec: 0,
+                                                                                                   nanosec: 0),
+                                                                                    frameId: ""),
+                                                                  temperature: 23.456,
+                                                                  variance: 0.0),
+                                     id: "ms5837")
+        
+        let data = Data(testDump)
+        let value = try! decoder.decode(RovTemperature.self, from: data)
+        XCTAssertEqual(value, example)
+
+        let dataBack = try! encoder.encode(value)
+        XCTAssertEqual(dataBack, data)
+    }
+
 }

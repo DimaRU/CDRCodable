@@ -37,7 +37,6 @@ final public class CDREncoder {
                 dataBlock.data.append(0)
             }
         }
-        print("Capacity, count:", capacity, dataBlock.data.count)
         return dataBlock.data
     }
 }
