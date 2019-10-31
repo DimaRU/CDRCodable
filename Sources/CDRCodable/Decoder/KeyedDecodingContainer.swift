@@ -28,7 +28,45 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
         return true
      }
     
+    func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
+        return try readByte() != 0
+    }
+    
+    func decode(_ type: String.Type, forKey key: Key) throws -> String {
+        let length = Int(try read(UInt32.self))
+        let data = try read(length - 1)
+        _ = try readByte()
+        
+        guard let string = String(data: data, encoding: .utf8) else {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
+            throw DecodingError.dataCorrupted(context)
+        }
+        return string
+    }
+    
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
+        let bitPattern = try read(UInt64.self)
+        return Double(bitPattern: bitPattern)
+    }
+
+    func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
+        let bitPattern = try read(UInt32.self)
+        return Float(bitPattern: bitPattern)
+    }
+
+    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : FixedWidthInteger & Decodable {
+        guard let t = T(exactly: try read(T.self)) else {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Invalid binary integer format")
+            throw DecodingError.typeMismatch(T.self, context)
+        }
+        return t
+    }
+
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+        if T.self is Data.Type {
+            let length = Int(try read(UInt32.self))
+            return try read(length) as! T
+        }
         let decoder = _CDRDecoder(data: self.data)
         let value = try T(from: decoder)
         return value

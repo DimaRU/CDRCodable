@@ -43,7 +43,7 @@ final public class CDRDecoder {
 final class _CDRDecoder {
     
     final class DataBlock {
-        var data: Data
+        let data: Data
         var index: Data.Index
         init(data: Data) {
             self.data = data
