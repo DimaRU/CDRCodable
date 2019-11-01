@@ -39,7 +39,6 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: String) throws {
-//        print("Single string: ", value)
         try checkCanEncode(value: value)
         defer { self.canEncodeNewValue = false }
         
@@ -72,7 +71,6 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode<T>(_ value: T) throws where T : FixedWidthInteger & Encodable {
-//        print("Single: ", String(describing: T.self))
         try checkCanEncode(value: value)
         defer { self.canEncodeNewValue = false }
         write(value: value)

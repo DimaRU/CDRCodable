@@ -1,7 +1,7 @@
 import XCTest
 @testable import CDRCodable
 
-class CDRCodablePerfTests: XCTestCase {
+class CDRCodablePerformanceTests: XCTestCase {
 
     struct ImageData: Codable {
         let image: Data
@@ -9,28 +9,21 @@ class CDRCodablePerfTests: XCTestCase {
         let stamp: UInt64
     }
 
-    
-    override func setUp() {
-    }
-
-    override func tearDown() {
-    }
-
-
-    func testDataDecode() {
+    func testDataDecodeEncode() {
         let testData = Data(repeating: 1, count: 40 * 1024)
         let imageData = ImageData(image: testData, key: "Key", stamp: 123456789)
-        
+
         let encoder = CDREncoder()
         let cdrData = try! encoder.encode(imageData)
-        let decoder = CDRDecoder()
+        XCTAssertEqual(cdrData.count, 40984)
 
+        let decoder = CDRDecoder()
         let decodedImage = try! decoder.decode(ImageData.self, from: cdrData)
         XCTAssertEqual(decodedImage.key, "Key")
     }
     
     
-    func testPerformanceData() {
+    func testPerformanceDataDecode() {
         let testData = Data(repeating: 1, count: 40 * 1024)
         let imageData = ImageData(image: testData, key: "Key", stamp: 123456789)
         
@@ -43,6 +36,20 @@ class CDRCodablePerfTests: XCTestCase {
             for _ in 1...100 {
                 let decodedImage = try! decoder.decode(ImageData.self, from: cdrData)
                 XCTAssertEqual(decodedImage.key, "Key")
+            }
+        }
+    }
+
+    func testPerformanceDataEncode() {
+        let testData = Data(repeating: 1, count: 40 * 1024)
+        let imageData = ImageData(image: testData, key: "Key", stamp: 123456789)
+        
+        let encoder = CDREncoder()
+
+        self.measure {
+            for _ in 1...100 {
+                let cdrData = try! encoder.encode(imageData)
+                XCTAssertEqual(cdrData.count, 40984)
             }
         }
     }

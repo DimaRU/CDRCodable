@@ -21,9 +21,58 @@ extension _CDREncoder {
 extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     func encodeNil(forKey key: Key) throws {
     }
+
+    func encode(_ value: Bool, forKey key: Key) throws {
+        switch value {
+        case false:
+            writeByte(0)
+        case true:
+            writeByte(1)
+        }
+    }
+    
+    func encode(_ value: String, forKey key: Key) throws {
+        guard let data = value.data(using: .utf8) else {
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string using UTF-8 encoding.")
+            throw EncodingError.invalidValue(value, context)
+        }
+        let length = data.count + 1
+
+        if let uint32 = UInt32(exactly: length) {
+            write(value: uint32)
+        } else {
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string with length \(length).")
+            throw EncodingError.invalidValue(value, context)
+        }
+        write(data: data)
+        writeByte(0)
+    }
+    
+    func encode(_ value: Double, forKey key: Key) throws {
+        write(value: value.bitPattern)
+    }
+    
+    func encode(_ value: Float, forKey key: Key) throws {
+        write(value: value.bitPattern)
+    }
+    
+    func encode<T>(_ value: T, forKey key: Key) throws where T : FixedWidthInteger & Encodable {
+        write(value: value)
+    }
     
     func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-//        print("Keyed: ", String(describing: T.self))
+        if let value = value as? Data {
+            let length = value.count
+            if let uint32 = UInt32(exactly: length) {
+                write(value: uint32)
+                write(data: value)
+            } else {
+                let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(value.count).")
+                throw EncodingError.invalidValue(value, context)
+            }
+            return
+        }
+
         let encoder = _CDREncoder(data: self.data)
         try value.encode(to: encoder)
     }
