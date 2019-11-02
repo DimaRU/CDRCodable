@@ -12,5 +12,5 @@ matrix:
       language: swift
 
 script:
-  - swift test -Xswiftc -swift-version -Xswiftc 5.1
+  - swift test -Xswiftc -swift-version -Xswiftc 5
   - swift build --configuration release  -Xswiftc -swift-version -Xswiftc 5
