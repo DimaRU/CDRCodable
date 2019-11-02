@@ -1,4 +1,16 @@
-language: objective-c
-xcode_project: CDRCodable.xcodeproj
-xcode_scheme: CDRCodable
-xcode_destination: platform=macOS
+language: swift
+branches:
+  only:
+    - master
+
+matrix:
+  include:
+    - &macos
+      os: osx
+      osx_image: xcode11.2
+      sudo: required
+      language: swift
+
+script:
+  - swift test -Xswiftc -swift-version -Xswiftc 5.1
+  - swift build --configuration release  -Xswiftc -swift-version -Xswiftc 5
