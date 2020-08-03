@@ -2,14 +2,6 @@ import Foundation
 
 extension _CDREncoder {
     final class SingleValueContainer {
-        fileprivate var canEncodeNewValue = true
-        fileprivate func checkCanEncode(value: Any?) throws {
-            guard self.canEncodeNewValue else {
-                let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Attempt to encode value through single value container when previously value already encoded.")
-                throw EncodingError.invalidValue(value as Any, context)
-            }
-        }
-        
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
         var data: DataBlock
@@ -27,9 +19,6 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: Bool) throws {
-        try checkCanEncode(value: nil)
-        defer { self.canEncodeNewValue = false }
-
         switch value {
         case false:
             writeByte(0)
@@ -39,9 +28,6 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: String) throws {
-        try checkCanEncode(value: value)
-        defer { self.canEncodeNewValue = false }
-        
         guard let data = value.data(using: .utf8) else {
             let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string using UTF-8 encoding.")
             throw EncodingError.invalidValue(value, context)
@@ -59,20 +45,14 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode(_ value: Double) throws {
-        try checkCanEncode(value: value)
-        defer { self.canEncodeNewValue = false }
         write(value: value.bitPattern)
     }
     
     func encode(_ value: Float) throws {
-        try checkCanEncode(value: value)
-        defer { self.canEncodeNewValue = false }
         write(value: value.bitPattern)
     }
     
     func encode<T>(_ value: T) throws where T : FixedWidthInteger & Encodable {
-        try checkCanEncode(value: value)
-        defer { self.canEncodeNewValue = false }
         write(value: value)
     }
 
@@ -88,10 +68,6 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
     
     func encode<T>(_ value: T) throws where T : Encodable {
-//        print("Single: ", String(describing: T.self))
-        try checkCanEncode(value: value)
-        defer { self.canEncodeNewValue = false }
-        
         switch value {
         case let data as Data:
             try self.encode(data)
