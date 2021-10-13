@@ -21,7 +21,7 @@ extension _CDREncoder {
         deinit {
             if let count32 = UInt32(exactly: count) {
                 let range = index-4..<index
-                self.data.data.replaceSubrange(range, with: count32.bigEndian.bytes)
+                self.data.data.replaceSubrange(range, with: count32.bytes)
             }
         }
     }

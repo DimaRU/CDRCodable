@@ -62,6 +62,8 @@ class CDRCodableEncodingTests: XCTestCase {
         ("testEncodeUInt32", testEncodeUInt32),
         ("testEncodeFloat", testEncodeFloat),
         ("testEncodeDouble", testEncodeDouble),
+        ("testEncodeString", testEncodeString),
         ("testEncodeArray", testEncodeArray),
+        ("testEncodeData", testEncodeData),
     ]
 }

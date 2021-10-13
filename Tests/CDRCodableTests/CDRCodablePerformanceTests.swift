@@ -22,7 +22,6 @@ class CDRCodablePerformanceTests: XCTestCase {
         XCTAssertEqual(decodedImage.key, "Key")
     }
     
-    
     func testPerformanceDataDecode() {
         let testData = Data(repeating: 1, count: 40 * 1024)
         let imageData = ImageData(image: testData, key: "Key", stamp: 123456789)

@@ -113,6 +113,6 @@ extension _CDREncodingContainer {
         if offset != 0 {
             self.data.data.append(contentsOf: Array(repeating: UInt8(0), count: aligment - offset))
         }
-        self.data.data.append(contentsOf: value.bigEndian.bytes)
+        self.data.data.append(contentsOf: value.bytes)
     }
 }

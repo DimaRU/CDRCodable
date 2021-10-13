@@ -10,17 +10,12 @@ let package = Package(
             name: "CDRCodable",
             targets: ["CDRCodable"]),
     ],
-    dependencies: [],
     targets: [
         .target(
-            name: "CDRCodable",
-            dependencies: [],
-            path: "Sources"
-        ),
+            name: "CDRCodable"),
         .testTarget(
             name: "CDRCodableTests",
-            dependencies: ["CDRCodable"],
-            path: "Tests"
+            dependencies: ["CDRCodable"]
         ),
     ]
 )
