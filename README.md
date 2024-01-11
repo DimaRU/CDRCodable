@@ -2,13 +2,13 @@
 
 ![Build](https://github.com/DimaRU/CDRCodable/workflows/Build/badge.svg) 
 
-A [OMG Common Data Representation (CDR)](https://msgpack.org/https://www.omg.org/spec/DDS-XTypes/) encoder and decoder for Swift `Codable` types.
+A [OMG Common Data Representation (CDR)](https://www.omg.org/spec/DDS-XTypes/) encoder and decoder for Swift `Codable` types.
 
-Now can be used with [FastRTPSBridge](https://github.com/DimaRU/FastRTPSBridge), a Swift wrapper for eProsima [FastDDS](https://github.com/eProsima/Fast-DDS) library.
+Now can be used with [FastRTPSSwift](https://github.com/DimaRU/FastRTPSSwift), a Swift wrapper for eProsima [FastDDS](https://github.com/eProsima/Fast-DDS) library.
 
 ## Requirements
 
-- Swift 4.2+
+- Swift 5.6+
 
 ## Usage
 
@@ -37,7 +37,7 @@ let value = try! decoder.decode([Int16].self, from: data)
 
 ### Swift Package Manager
 
-Add the MessagePack package to your target dependencies in `Package.swift`:
+Add the CDRCodable package to your target dependencies in `Package.swift`:
 
 ```swift
 import PackageDescription
@@ -78,7 +78,7 @@ The following table shows the basic IDL types supported by CDRCodable and how th
 | String  | std::string | string             |
 
 ### 2. Arrays
-Static size arrays is not supported by CDRCodable directly, needed custom coding.
+Static size arrays is not supported by CDRCodable directly and needed custom coding.
 
 ### 3. Sequences
 CDRCodable supports sequences, which map between Swift Array and C++ std::vector container. The following table represents how the map between Swift, C++11 and IDL and is handled.
@@ -151,7 +151,7 @@ enum ESubsystemState: Int32, Codable {
 
 ### 5. Union
 
-Union type is not supported by CDRCodable directly, needed custom coding.
+Union type is not supported by CDRCodable directly and needed custom coding.
 Example:
 
 IDL definition:

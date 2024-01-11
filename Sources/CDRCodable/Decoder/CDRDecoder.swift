@@ -93,7 +93,7 @@ extension _CDRDecoder: Decoder {
     }
 }
 
-protocol _CDRDecodingContainer: class {
+protocol _CDRDecodingContainer: AnyObject {
     var codingPath: [CodingKey] { get set }
     var userInfo: [CodingUserInfoKey : Any] { get }
     var data: _CDRDecoder.DataBlock { get }
