@@ -54,16 +54,4 @@ class CDRCodableEncodingTests: XCTestCase {
         let value = try! encoder.encode(data)
         XCTAssertEqual(value, Data([5, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0, 0, 0]))
     }
-    
-    static var allTests = [
-        ("testEncodeFalse", testEncodeFalse),
-        ("testEncodeTrue", testEncodeTrue),
-        ("testEncodeInt32", testEncodeInt32),
-        ("testEncodeUInt32", testEncodeUInt32),
-        ("testEncodeFloat", testEncodeFloat),
-        ("testEncodeDouble", testEncodeDouble),
-        ("testEncodeString", testEncodeString),
-        ("testEncodeArray", testEncodeArray),
-        ("testEncodeData", testEncodeData),
-    ]
 }

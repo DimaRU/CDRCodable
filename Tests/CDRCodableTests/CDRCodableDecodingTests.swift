@@ -61,16 +61,4 @@ class CDRCodableDecodingTests: XCTestCase {
         let value = try! decoder.decode(Data.self, from: data)
         XCTAssertEqual(value, "hello".data(using: .utf8))
     }
-
-    static var allTests = [
-        ("testDecodeFalse", testDecodeFalse),
-        ("testDecodeTrue", testDecodeTrue),
-        ("testDecodeInt", testDecodeInt),
-        ("testDecodeUInt8", testDecodeUInt8),
-        ("testDecodeFloat", testDecodeFloat),
-        ("testDecodeDouble", testDecodeDouble),
-        ("testDecodeArray", testDecodeArray),
-        ("testDecodeString", testDecodeString),
-        ("testDecodeData", testDecodeData),
-    ]
 }
