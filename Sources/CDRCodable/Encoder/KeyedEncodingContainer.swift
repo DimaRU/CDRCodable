@@ -25,8 +25,24 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
         self.dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
     }
 
-    func encodeNil(forKey key: Key) throws {
-    }
+    // Ignoring optionals as having no analog in the CDR protocol
+    func encodeNil(forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Bool?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: String?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Double?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Float?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Int?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Int8?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Int16?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Int32?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: Int64?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: UInt?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: UInt8?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws {}
+    func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws {}
+    func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws where T : Encodable {}
+    
     
     func encode(_ value: Bool, forKey key: Key) throws {
         switch value {
@@ -82,11 +98,6 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
             let encoder = _CDREncoder(data: self.dataStore)
             try value.encode(to: encoder)
         }
-    }
-    
-    private func nestedSingleValueContainer(forKey key: Key) -> SingleValueEncodingContainer {
-        let container = _CDREncoder.SingleValueContainer(dataStore: self.dataStore, codingPath: self.nestedCodingPath(forKey: key), userInfo: self.userInfo)
-        return container
     }
     
     func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {

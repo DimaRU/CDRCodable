@@ -28,17 +28,12 @@ extension _CDREncoder {
 }
 
 extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
-    func encodeNil() throws {
-    }
+    func encodeNil() throws {}
     
     func encode<T>(_ value: T) throws where T : Encodable {
         defer { count += 1 }
         let encoder = _CDREncoder(data: self.dataStore)
         try value.encode(to: encoder)
-    }
-    
-    private func nestedSingleValueContainer() -> SingleValueEncodingContainer {
-        fatalError("Unimplemented")
     }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {

@@ -15,8 +15,7 @@ extension _CDREncoder {
 }
 
 extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
-    func encodeNil() throws {
-    }
+    func encodeNil() throws {}
     
     func encode(_ value: Bool) throws {
         switch value {
