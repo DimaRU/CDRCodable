@@ -30,7 +30,7 @@ final public class CDREncoder {
             try value.encode(to: encoder!)
         }
         
-        encoder = nil
+        encoder = nil       // call deinit and finalize dataBlock changes.
         let aligment = dataBlock.data.count % 4
         if aligment != 0 {
             for _ in 0..<4-aligment {
@@ -47,7 +47,7 @@ protocol _CDREncodingContainer {
     var data: _CDREncoder.DataBlock { get }
 }
 
-class _CDREncoder {
+final class _CDREncoder {
     final class DataBlock {
         var data: Data
         init(capacity: Int) {
