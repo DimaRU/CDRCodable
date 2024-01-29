@@ -21,11 +21,7 @@ extension _CDREncoder {
 extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     @inline(__always)
     private func encodeNumericArray(count: Int, size: Int, pointer: UnsafeRawBufferPointer) throws {
-        guard let uint32 = UInt32(exactly: count) else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(count).")
-            throw EncodingError.invalidValue(count, context)
-        }
-        dataStore.write(value: uint32)
+        try write(count: count)
         self.dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
     }
 
@@ -48,12 +44,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
         }
         let length = data.count + 1
 
-        if let uint32 = UInt32(exactly: length) {
-            dataStore.write(value: uint32)
-        } else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string with length \(length).")
-            throw EncodingError.invalidValue(value, context)
-        }
+        try write(count: length)
         dataStore.write(data: data)
         dataStore.writeByte(0)
     }
@@ -85,11 +76,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
         case let value as [Float]: try encodeNumericArray(count: value.count, size: MemoryLayout<Float>.size, pointer: value.withUnsafeBytes{ $0 })
         case let value as [Double]: try encodeNumericArray(count: value.count, size: MemoryLayout<Double>.size, pointer: value.withUnsafeBytes{ $0 })
         case let value as Data:
-            guard let uint32 = UInt32(exactly: value.count) else {
-                let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(value.count).")
-                throw EncodingError.invalidValue(value.count, context)
-            }
-            dataStore.write(value: uint32)
+            try write(count: value.count)
             dataStore.write(data: value)
         default:
             let encoder = _CDREncoder(data: self.dataStore)

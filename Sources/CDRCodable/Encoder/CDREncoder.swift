@@ -31,6 +31,7 @@ final public class CDREncoder {
         }
         
         encoder = nil       // call deinit and finalize dataBlock changes.
+        // Final data aligment
         let aligment = dataBlock.data.count % 4
         if aligment != 0 {
             for _ in 0..<4-aligment {
@@ -45,6 +46,8 @@ final public class CDREncoder {
 
 protocol _CDREncodingContainer {
     var dataStore: _CDREncoder.DataStore { get }
+    var codingPath: [CodingKey] { get set }
+    func write(count: Int) throws
 }
 
 final class _CDREncoder {
@@ -117,5 +120,15 @@ extension _CDREncoder.DataStore {
             self.data.append(contentsOf: Array(repeating: UInt8(0), count: aligment - offset))
         }
         self.data.append(contentsOf: value.bytes)
+    }
+}
+
+extension _CDREncodingContainer {
+    func write(count: Int) throws {
+        guard let uint32 = UInt32(exactly: count) else {
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(count).")
+            throw EncodingError.invalidValue(count, context)
+        }
+        dataStore.write(value: uint32)
     }
 }

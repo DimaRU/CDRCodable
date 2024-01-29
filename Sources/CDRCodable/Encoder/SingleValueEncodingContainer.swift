@@ -1,7 +1,7 @@
 import Foundation
 
 extension _CDREncoder {
-    final class SingleValueContainer {
+    final class SingleValueContainer: _CDREncodingContainer {
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
         var dataStore: DataStore
@@ -34,12 +34,7 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
         }
         let length = data.count + 1
 
-        if let uint32 = UInt32(exactly: length) {
-            dataStore.write(value: uint32)
-        } else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string with length \(length).")
-            throw EncodingError.invalidValue(value, context)
-        }
+        try write(count: length)
         dataStore.write(data: data)
         dataStore.writeByte(0)
     }
@@ -57,14 +52,8 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     }
 
     func encode(_ value: Data) throws {
-        let length = value.count
-        if let uint32 = UInt32(exactly: length) {
-            dataStore.write(value: uint32)
-            dataStore.write(data: value)
-        } else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(value.count).")
-            throw EncodingError.invalidValue(value, context)
-        }
+        try write(count: value.count)
+        dataStore.write(data: value)
     }
     
     func encode<T>(_ value: T) throws where T : Encodable {
@@ -77,5 +66,3 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
         }
     }
 }
-
-extension _CDREncoder.SingleValueContainer: _CDREncodingContainer {}

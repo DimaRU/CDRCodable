@@ -1,7 +1,7 @@
 import Foundation
 
 extension _CDREncoder {
-    final class UnkeyedContainer {
+    final class UnkeyedContainer: _CDREncodingContainer {
         var count: Int = 0
         private var index: Data.Index
         var codingPath: [CodingKey]
@@ -53,5 +53,3 @@ extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
         fatalError("Unimplemented")
     }
 }
-
-extension _CDREncoder.UnkeyedContainer: _CDREncodingContainer {}
