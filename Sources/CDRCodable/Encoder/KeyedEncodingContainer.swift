@@ -19,9 +19,19 @@ extension _CDREncoder {
 }
 
 extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
-    func encodeNil(forKey key: Key) throws {
+    @inline(__always)
+    private func encodeNumericArray(count: Int, size: Int, pointer: UnsafeRawBufferPointer) throws {
+        guard let uint32 = UInt32(exactly: count) else {
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(count).")
+            throw EncodingError.invalidValue(count, context)
+        }
+        write(value: uint32)
+        self.data.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
     }
 
+    func encodeNil(forKey key: Key) throws {
+    }
+    
     func encode(_ value: Bool, forKey key: Key) throws {
         switch value {
         case false:
@@ -61,20 +71,30 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     }
     
     func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-        if let value = value as? Data {
-            let length = value.count
-            if let uint32 = UInt32(exactly: length) {
-                write(value: uint32)
-                write(data: value)
-            } else {
+        switch value {
+        case let value as [Int]: try encodeNumericArray(count: value.count, size: MemoryLayout<Int>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int8]: try encodeNumericArray(count: value.count, size: MemoryLayout<Int8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int16]: try encodeNumericArray(count: value.count, size: MemoryLayout<Int16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int32]: try encodeNumericArray(count: value.count, size: MemoryLayout<Int32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int64]: try encodeNumericArray(count: value.count, size: MemoryLayout<Int64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt]: try encodeNumericArray(count: value.count, size: MemoryLayout<UInt>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt8]: try encodeNumericArray(count: value.count, size: MemoryLayout<UInt8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt16]: try encodeNumericArray(count: value.count, size: MemoryLayout<UInt16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt32]: try encodeNumericArray(count: value.count, size: MemoryLayout<UInt32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt64]: try encodeNumericArray(count: value.count, size: MemoryLayout<UInt64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Float]: try encodeNumericArray(count: value.count, size: MemoryLayout<Float>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Double]: try encodeNumericArray(count: value.count, size: MemoryLayout<Double>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as Data:
+            guard let uint32 = UInt32(exactly: value.count) else {
                 let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(value.count).")
-                throw EncodingError.invalidValue(value, context)
+                throw EncodingError.invalidValue(value.count, context)
             }
-            return
+            write(value: uint32)
+            write(data: value)
+        default:
+            let encoder = _CDREncoder(data: self.data)
+            try value.encode(to: encoder)
         }
-
-        let encoder = _CDREncoder(data: self.data)
-        try value.encode(to: encoder)
     }
     
     private func nestedSingleValueContainer(forKey key: Key) -> SingleValueEncodingContainer {
