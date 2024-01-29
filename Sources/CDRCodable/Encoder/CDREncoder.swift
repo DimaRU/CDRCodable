@@ -19,7 +19,7 @@ final public class CDREncoder {
     public func encode(_ value: Encodable) throws -> Data {
         var capacity = MemoryLayout.size(ofValue: value)
         capacity = capacity + capacity / 10 + 8
-        let dataBlock = _CDREncoder.DataBlock(capacity: capacity)
+        let dataBlock = _CDREncoder.DataStore(capacity: capacity)
         var encoder: _CDREncoder? = _CDREncoder(data: dataBlock)
         encoder!.userInfo = self.userInfo
 
@@ -44,11 +44,11 @@ final public class CDREncoder {
 // MARK: -
 
 protocol _CDREncodingContainer {
-    var data: _CDREncoder.DataBlock { get }
+    var dataStore: _CDREncoder.DataStore { get }
 }
 
 final class _CDREncoder {
-    final class DataBlock {
+    final class DataStore {
         var data: Data
         init(capacity: Int) {
             data = Data(capacity: capacity)
@@ -58,10 +58,10 @@ final class _CDREncoder {
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey : Any] = [:]
     fileprivate var container: _CDREncodingContainer?
-    var data: DataBlock
+    var dataStore: DataStore
     
-    init(data: DataBlock) {
-        self.data = data
+    init(data: DataStore) {
+        self.dataStore = data
     }
 }
 
@@ -73,7 +73,7 @@ extension _CDREncoder: Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
         assertCanCreateContainer()
         
-        let container = KeyedContainer<Key>(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
         return KeyedEncodingContainer(container)
@@ -82,7 +82,7 @@ extension _CDREncoder: Encoder {
     func unkeyedContainer() -> UnkeyedEncodingContainer {
         assertCanCreateContainer()
         
-        let container = UnkeyedContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = UnkeyedContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
         return container
@@ -91,28 +91,31 @@ extension _CDREncoder: Encoder {
     func singleValueContainer() -> SingleValueEncodingContainer {
         assertCanCreateContainer()
         
-        let container = SingleValueContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = SingleValueContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
         return container
     }
 }
 
-extension _CDREncodingContainer {
+extension _CDREncoder.DataStore {
+    @inline(__always)
     func write(data: Data) {
-        self.data.data.append(data)
+        self.data.append(data)
     }
     
+    @inline(__always)
     func writeByte(_ byte: UInt8) {
-        self.data.data.append(byte)
+        self.data.append(byte)
     }
     
+    @inline(__always)
     func write<T>(value: T) where T: FixedWidthInteger {
         let aligment = MemoryLayout<T>.alignment
-        let offset = self.data.data.count % aligment
+        let offset = self.data.count % aligment
         if offset != 0 {
-            self.data.data.append(contentsOf: Array(repeating: UInt8(0), count: aligment - offset))
+            self.data.append(contentsOf: Array(repeating: UInt8(0), count: aligment - offset))
         }
-        self.data.data.append(contentsOf: value.bytes)
+        self.data.append(contentsOf: value.bytes)
     }
 }
