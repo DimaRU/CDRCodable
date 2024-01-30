@@ -23,7 +23,25 @@ final public class CDREncoder {
         var encoder: _CDREncoder? = _CDREncoder(data: dataBlock)
         encoder!.userInfo = self.userInfo
 
-        try value.encode(to: encoder!)
+        switch value {
+        case let value as [Int]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int8]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int16]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int32]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int64]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt8]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt16]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt32]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt64]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Float]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Float>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Double]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Double>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as Data:
+            try encoder!.dataStore.write(count: value.count)
+            encoder!.dataStore.write(data: value)
+        default:
+            try value.encode(to: encoder!)
+        }
 
         encoder = nil       // call deinit and finalize dataBlock changes.
         // Final data aligment
@@ -60,6 +78,15 @@ final class _CDREncoder {
     
     init(data: DataStore) {
         self.dataStore = data
+    }
+    @inline(__always)
+    func encodeNumericArray(count: Int, size: Int, pointer: UnsafeRawBufferPointer) throws {
+        guard let uint32 = UInt32(exactly: count) else {
+            let context = EncodingError.Context(codingPath: [], debugDescription: "Cannot encode data of length \(count).")
+            throw EncodingError.invalidValue(count, context)
+        }
+        dataStore.write(value: uint32)
+        dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
     }
 }
 
@@ -115,6 +142,14 @@ extension _CDREncoder.DataStore {
             self.data.append(contentsOf: Array(repeating: UInt8(0), count: aligment - offset))
         }
         self.data.append(contentsOf: value.bytes)
+    }
+    
+    func write(count: Int) throws {
+        guard let uint32 = UInt32(exactly: count) else {
+            let context = EncodingError.Context(codingPath: [], debugDescription: "Cannot encode data of length \(count).")
+            throw EncodingError.invalidValue(count, context)
+        }
+        write(value: uint32)
     }
 }
 

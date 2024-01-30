@@ -22,7 +22,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     @inline(__always)
     private func encodeNumericArray(count: Int, size: Int, pointer: UnsafeRawBufferPointer) throws {
         try write(count: count)
-        self.dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
+        dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: count * size)
     }
 
     // Ignoring optionals as having no analog in the CDR protocol

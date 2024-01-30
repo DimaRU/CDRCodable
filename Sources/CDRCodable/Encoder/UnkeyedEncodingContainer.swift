@@ -15,12 +15,11 @@ extension _CDREncoder {
             let count: UInt32 = 0
             self.index = dataStore.data.endIndex
             dataStore.write(value: count)
-            self.index = dataStore.data.endIndex
         }
         
         deinit {
             if let count32 = UInt32(exactly: count) {
-                let range = index-4..<index
+                let range = index..<index+MemoryLayout<UInt32>.size
                 self.dataStore.data.replaceSubrange(range, with: count32.bytes)
             }
         }
