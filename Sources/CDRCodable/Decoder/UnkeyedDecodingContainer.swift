@@ -4,7 +4,7 @@ extension _CDRDecoder {
     final class UnkeyedContainer {
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
-        var data: DataBlock
+        var dataStore: DataStore
         
         lazy var count: Int? = {
             do {
@@ -17,10 +17,10 @@ extension _CDRDecoder {
         var currentIndex: Int = 0
         
        
-        init(data: DataBlock, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.data = data
+            self.dataStore = data
         }
         
         var isAtEnd: Bool {
@@ -39,7 +39,7 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
     
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         defer { self.currentIndex += 1 }
-        let decoder = _CDRDecoder(data: self.data)
+        let decoder = _CDRDecoder(data: self.dataStore)
         let value = try T(from: decoder)
         return value
     }
@@ -56,7 +56,7 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
     }
 
     func superDecoder() throws -> Decoder {
-        return _CDRDecoder(data: self.data)
+        return _CDRDecoder(data: self.dataStore)
     }
 }
 

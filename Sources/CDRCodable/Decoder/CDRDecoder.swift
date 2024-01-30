@@ -24,7 +24,7 @@ final public class CDRDecoder {
                if the data is not valid CDRCodable.
      */
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
-        let decoder = _CDRDecoder(data: _CDRDecoder.DataBlock(data: data))
+        let decoder = _CDRDecoder(data: _CDRDecoder.DataStore(data: data))
         decoder.userInfo = self.userInfo
         
         return try T(from: decoder)
@@ -36,7 +36,7 @@ final public class CDRDecoder {
 
 final class _CDRDecoder {
     
-    final class DataBlock {
+    final class DataStore {
         let data: Data
         var index: Data.Index
         init(data: Data) {
@@ -47,10 +47,10 @@ final class _CDRDecoder {
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey : Any] = [:]
     var container: _CDRDecodingContainer?
-    var data: DataBlock
+    var dataStore: DataStore
     
-    init(data: DataBlock) {
-        self.data = data
+    init(data: DataStore) {
+        self.dataStore = data
     }
 }
 
@@ -62,7 +62,7 @@ extension _CDRDecoder: Decoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
         assertCanCreateContainer()
 
-        let container = KeyedContainer<Key>(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return KeyedDecodingContainer(container)
@@ -71,7 +71,7 @@ extension _CDRDecoder: Decoder {
     func unkeyedContainer() -> UnkeyedDecodingContainer {
         assertCanCreateContainer()
         
-        let container = UnkeyedContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = UnkeyedContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return container
@@ -80,7 +80,7 @@ extension _CDRDecoder: Decoder {
     func singleValueContainer() -> SingleValueDecodingContainer {
         assertCanCreateContainer()
         
-        let container = SingleValueContainer(data: self.data, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = SingleValueContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
         return container
@@ -90,7 +90,7 @@ extension _CDRDecoder: Decoder {
 protocol _CDRDecodingContainer: AnyObject {
     var codingPath: [CodingKey] { get set }
     var userInfo: [CodingUserInfoKey : Any] { get }
-    var data: _CDRDecoder.DataBlock { get }
+    var dataStore: _CDRDecoder.DataStore { get }
 }
 
 extension _CDRDecodingContainer {
@@ -99,21 +99,21 @@ extension _CDRDecodingContainer {
     }
 
     func read(_ length: Int) throws -> Data {
-        let nextIndex = self.data.index.advanced(by: length)
-        guard nextIndex <= self.data.data.endIndex else {
+        let nextIndex = self.dataStore.index.advanced(by: length)
+        guard nextIndex <= self.dataStore.data.endIndex else {
             let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data")
             throw DecodingError.dataCorrupted(context)
         }
-        defer { self.data.index = nextIndex }
+        defer { self.dataStore.index = nextIndex }
 
-        return self.data.data.subdata(in: self.data.index..<nextIndex)
+        return self.dataStore.data.subdata(in: self.dataStore.index..<nextIndex)
     }
 
     func read<T>(_ type: T.Type) throws -> T where T : FixedWidthInteger {
         let aligment = MemoryLayout<T>.alignment
-        let offset = self.data.index % aligment
+        let offset = self.dataStore.index % aligment
         if offset != 0 {
-            self.data.index = self.data.index.advanced(by: aligment - offset)
+            self.dataStore.index = self.dataStore.index.advanced(by: aligment - offset)
         }
         let stride = MemoryLayout<T>.stride
         let bytes = [UInt8](try read(stride))

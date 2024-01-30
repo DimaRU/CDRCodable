@@ -4,12 +4,12 @@ extension _CDRDecoder {
     final class SingleValueContainer {
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
-        var data: DataBlock
+        var dataStore: DataStore
 
-        init(data: DataBlock, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.data = data
+            self.dataStore = data
         }
     }
 }
@@ -59,7 +59,7 @@ extension _CDRDecoder.SingleValueContainer: SingleValueDecodingContainer {
             let length = Int(try read(UInt32.self))
             return try read(length) as! T
         default:
-            let decoder = _CDRDecoder(data: self.data)
+            let decoder = _CDRDecoder(data: self.dataStore)
             let value = try T(from: decoder)
             return value
         }

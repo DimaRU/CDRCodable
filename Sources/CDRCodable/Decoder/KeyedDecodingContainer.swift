@@ -2,7 +2,7 @@ import Foundation
 
 extension _CDRDecoder {
     final class KeyedContainer<Key> where Key: CodingKey {
-        var data: DataBlock
+        var dataStore: DataStore
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
         var allKeys: [Key] = []
@@ -11,10 +11,10 @@ extension _CDRDecoder {
             return self.codingPath + [key]
         }
         
-        init(data: DataBlock, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.data = data
+            self.dataStore = data
         }
     }
 }
@@ -67,7 +67,7 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
             let length = Int(try read(UInt32.self))
             return try read(length) as! T
         }
-        let decoder = _CDRDecoder(data: self.data)
+        let decoder = _CDRDecoder(data: self.dataStore)
         let value = try T(from: decoder)
         return value
     }
@@ -83,11 +83,11 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     }
     
     func superDecoder() throws -> Decoder {
-        return _CDRDecoder(data: self.data)
+        return _CDRDecoder(data: self.dataStore)
     }
     
     func superDecoder(forKey key: Key) throws -> Decoder {
-        let decoder = _CDRDecoder(data: self.data)
+        let decoder = _CDRDecoder(data: self.dataStore)
         decoder.codingPath = [key]
         return decoder
     }
