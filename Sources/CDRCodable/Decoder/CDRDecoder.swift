@@ -27,13 +27,7 @@ final public class CDRDecoder {
         let decoder = _CDRDecoder(data: _CDRDecoder.DataBlock(data: data))
         decoder.userInfo = self.userInfo
         
-        switch type {
-        case is Data.Type:
-            let box = try Box<Data>(from: decoder)
-            return box.value as! T
-        default:
-            return try T(from: decoder)
-        }
+        return try T(from: decoder)
     }
 }
 

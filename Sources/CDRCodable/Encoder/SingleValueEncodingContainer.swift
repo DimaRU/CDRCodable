@@ -50,15 +50,11 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
         dataStore.write(value: value)
     }
 
-    func encode(_ value: Data) throws {
-        try write(count: value.count)
-        dataStore.write(data: value)
-    }
-    
     func encode<T>(_ value: T) throws where T : Encodable {
         switch value {
         case let data as Data:
-            try self.encode(data)
+            try write(count: data.count)
+            dataStore.write(data: data)
         default:
             let encoder = _CDREncoder(data: self.dataStore)
             try value.encode(to: encoder)

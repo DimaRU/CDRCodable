@@ -23,13 +23,8 @@ final public class CDREncoder {
         var encoder: _CDREncoder? = _CDREncoder(data: dataBlock)
         encoder!.userInfo = self.userInfo
 
-        switch value {
-        case let data as Data:
-            try Box<Data>(data).encode(to: encoder!)
-        default:
-            try value.encode(to: encoder!)
-        }
-        
+        try value.encode(to: encoder!)
+
         encoder = nil       // call deinit and finalize dataBlock changes.
         // Final data aligment
         let aligment = dataBlock.data.count % 4

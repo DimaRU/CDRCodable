@@ -53,15 +53,11 @@ extension _CDRDecoder.SingleValueContainer: SingleValueDecodingContainer {
         return t
     }
 
-    func decode(_ type: Data.Type) throws -> Data {
-        let length = Int(try read(UInt32.self))
-        return try read(length)
-    }
-    
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         switch type {
         case is Data.Type:
-            return try decode(Data.self) as! T
+            let length = Int(try read(UInt32.self))
+            return try read(length) as! T
         default:
             let decoder = _CDRDecoder(data: self.data)
             let value = try T(from: decoder)
