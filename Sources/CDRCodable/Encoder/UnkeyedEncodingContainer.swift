@@ -1,7 +1,7 @@
 import Foundation
 
 extension _CDREncoder {
-    final class UnkeyedContainer: _CDREncodingContainer {
+    struct UnkeyedContainer: _CDREncodingContainer {
         var count: Int = 0
         private var index: Data.Index
         var codingPath: [CodingKey]
@@ -17,7 +17,7 @@ extension _CDREncoder {
             dataStore.write(value: count)
         }
         
-        deinit {
+        func closeContainer() {
             if let count32 = UInt32(exactly: count) {
                 let range = index..<index+MemoryLayout<UInt32>.size
                 self.dataStore.data.replaceSubrange(range, with: count32.bytes)
@@ -29,7 +29,7 @@ extension _CDREncoder {
 extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     func encodeNil() throws {}
     
-    func encode<T>(_ value: T) throws where T : Encodable {
+    mutating func encode<T>(_ value: T) throws where T : Encodable {
         defer { count += 1 }
         let encoder = _CDREncoder(data: self.dataStore)
         try value.encode(to: encoder)

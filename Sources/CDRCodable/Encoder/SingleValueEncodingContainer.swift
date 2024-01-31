@@ -1,7 +1,7 @@
 import Foundation
 
 extension _CDREncoder {
-    final class SingleValueContainer: _CDREncodingContainer {
+   struct SingleValueContainer: _CDREncodingContainer {
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
         var dataStore: DataStore
@@ -11,6 +11,7 @@ extension _CDREncoder {
             self.userInfo = userInfo
             self.dataStore = dataStore
         }
+        func closeContainer() {}
     }
 }
 

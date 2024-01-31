@@ -1,7 +1,7 @@
 import Foundation
 
 extension _CDREncoder {
-    final class KeyedContainer<Key> where Key: CodingKey {
+    struct KeyedContainer<Key> where Key: CodingKey {
         var codingPath: [CodingKey]
         var userInfo: [CodingUserInfoKey: Any]
         var dataStore: DataStore
@@ -119,4 +119,6 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     }
 }
 
-extension _CDREncoder.KeyedContainer: _CDREncodingContainer {}
+extension _CDREncoder.KeyedContainer: _CDREncodingContainer {
+    func closeContainer() {}
+}

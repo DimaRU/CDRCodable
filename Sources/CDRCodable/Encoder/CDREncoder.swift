@@ -20,30 +20,30 @@ final public class CDREncoder {
         var capacity = MemoryLayout.size(ofValue: value)
         capacity = capacity + capacity / 10 + 8
         let dataBlock = _CDREncoder.DataStore(capacity: capacity)
-        var encoder: _CDREncoder? = _CDREncoder(data: dataBlock)
-        encoder!.userInfo = self.userInfo
+        let encoder: _CDREncoder = _CDREncoder(data: dataBlock)
+        encoder.userInfo = self.userInfo
 
         switch value {
-        case let value as [Int]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int8]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int8>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int16]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int16>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int32]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int32>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int64]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Int64>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt8]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt8>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt16]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt16>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt32]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt32>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt64]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<UInt64>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Float]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Float>.size, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Double]: try encoder!.encodeNumericArray(count: value.count, size: MemoryLayout<Double>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Int>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int8]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Int8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int16]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Int16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int32]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Int32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int64]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Int64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<UInt>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt8]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<UInt8>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt16]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<UInt16>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt32]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<UInt32>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt64]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<UInt64>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Float]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Float>.size, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Double]: try encoder.encodeNumericArray(count: value.count, size: MemoryLayout<Double>.size, pointer: value.withUnsafeBytes{ $0 })
         case let value as Data:
-            try encoder!.dataStore.write(count: value.count)
-            encoder!.dataStore.write(data: value)
+            try encoder.dataStore.write(count: value.count)
+            encoder.dataStore.write(data: value)
         default:
-            try value.encode(to: encoder!)
+            try value.encode(to: encoder)
         }
 
-        encoder = nil       // call deinit and finalize dataBlock changes.
+        encoder.container?.closeContainer()    // finalize dataBlock changes.
         // Final data aligment
         let aligment = dataBlock.data.count % 4
         if aligment != 0 {
@@ -61,6 +61,7 @@ protocol _CDREncodingContainer {
     var dataStore: _CDREncoder.DataStore { get }
     var codingPath: [CodingKey] { get set }
     func write(count: Int) throws
+    func closeContainer()
 }
 
 final class _CDREncoder {
