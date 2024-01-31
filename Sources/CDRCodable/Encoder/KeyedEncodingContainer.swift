@@ -65,15 +65,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
         dataStore.writeByte(0)
     }
     
-    func encode(_ value: Double, forKey key: Key) throws {
-        dataStore.write(value: value.bitPattern)
-    }
-    
-    func encode(_ value: Float, forKey key: Key) throws {
-        dataStore.write(value: value.bitPattern)
-    }
-    
-    func encode<T>(_ value: T, forKey key: Key) throws where T : FixedWidthInteger & Encodable {
+    func encode<T>(_ value: T, forKey key: Key) throws where T : Numeric & Encodable {
         dataStore.write(value: value)
     }
     

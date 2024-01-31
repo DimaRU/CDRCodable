@@ -39,15 +39,7 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
         dataStore.writeByte(0)
     }
     
-    func encode(_ value: Double) throws {
-        dataStore.write(value: value.bitPattern)
-    }
-    
-    func encode(_ value: Float) throws {
-        dataStore.write(value: value.bitPattern)
-    }
-    
-    func encode<T>(_ value: T) throws where T : FixedWidthInteger & Encodable {
+    func encode<T>(_ value: T) throws where T : Numeric & Encodable {
         dataStore.write(value: value)
     }
 

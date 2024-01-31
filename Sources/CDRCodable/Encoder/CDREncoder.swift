@@ -92,13 +92,9 @@ final class _CDREncoder {
 }
 
 extension _CDREncoder: Encoder {
-    fileprivate func assertCanCreateContainer() {
-        precondition(self.container == nil)
-    }
-    
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-        assertCanCreateContainer()
-        
+        precondition(self.container == nil)
+
         let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
@@ -106,8 +102,8 @@ extension _CDREncoder: Encoder {
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        assertCanCreateContainer()
-        
+        precondition(self.container == nil)
+
         let container = UnkeyedContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
@@ -115,8 +111,8 @@ extension _CDREncoder: Encoder {
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        assertCanCreateContainer()
-        
+        precondition(self.container == nil)
+
         let container = SingleValueContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
@@ -136,7 +132,7 @@ extension _CDREncoder.DataStore {
     }
     
     @inline(__always)
-    func write<T>(value: T) where T: FixedWidthInteger {
+    func write<T>(value: T) where T: Numeric {
         let aligment = MemoryLayout<T>.alignment
         let offset = self.data.count % aligment
         if offset != 0 {
