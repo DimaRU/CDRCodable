@@ -55,12 +55,8 @@ final class _CDRDecoder {
 }
 
 extension _CDRDecoder: Decoder {
-    fileprivate func assertCanCreateContainer() {
-        precondition(self.container == nil)
-    }
-        
     func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        assertCanCreateContainer()
+        precondition(self.container == nil)
 
         let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
@@ -68,9 +64,9 @@ extension _CDRDecoder: Decoder {
         return KeyedDecodingContainer(container)
     }
 
-    func unkeyedContainer() -> UnkeyedDecodingContainer {
-        assertCanCreateContainer()
-        
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        precondition(self.container == nil)
+
         let container = UnkeyedContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
@@ -78,8 +74,8 @@ extension _CDRDecoder: Decoder {
     }
     
     func singleValueContainer() -> SingleValueDecodingContainer {
-        assertCanCreateContainer()
-        
+        precondition(self.container == nil)
+
         let container = SingleValueContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
         
@@ -87,37 +83,85 @@ extension _CDRDecoder: Decoder {
     }
 }
 
-protocol _CDRDecodingContainer: AnyObject {
+protocol _CDRDecodingContainer {
     var codingPath: [CodingKey] { get set }
     var userInfo: [CodingUserInfoKey : Any] { get }
     var dataStore: _CDRDecoder.DataStore { get }
 }
 
 extension _CDRDecodingContainer {
-    func readByte() throws -> UInt8 {
-        return try read(1).first!
+    @inline(__always)
+    func align(to aligment: Int) {
+        let offset = self.dataStore.index % aligment
+        if offset != 0 {
+            self.dataStore.index = self.dataStore.index.advanced(by: aligment - offset)
+        }
     }
-
-    func read(_ length: Int) throws -> Data {
+    
+    @inline(__always)
+    func checkDataEnd(_ length: Int) throws {
         let nextIndex = self.dataStore.index.advanced(by: length)
         guard nextIndex <= self.dataStore.data.endIndex else {
             let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data")
             throw DecodingError.dataCorrupted(context)
         }
-        defer { self.dataStore.index = nextIndex }
-
-        return self.dataStore.data.subdata(in: self.dataStore.index..<nextIndex)
     }
-
-    func read<T>(_ type: T.Type) throws -> T where T : FixedWidthInteger {
+    
+    @inline(__always)
+    func readCheckBlockCount(of size: Int) throws -> Int {
+        let length = Int(try read(UInt32.self))
+        try checkDataEnd(length * size)
+        return length
+    }
+    
+    @inline(__always)
+    func read<T>(_ type: T.Type) throws -> T where T : Numeric {
         let aligment = MemoryLayout<T>.alignment
         let offset = self.dataStore.index % aligment
         if offset != 0 {
             self.dataStore.index = self.dataStore.index.advanced(by: aligment - offset)
         }
         let stride = MemoryLayout<T>.stride
-        let bytes = [UInt8](try read(stride))
-        return T(bytes: bytes)
+        try checkDataEnd(stride)
+        defer {  
+            dataStore.index = dataStore.index.advanced(by: stride)
+        }
+        return dataStore.data.withUnsafeBytes{ $0.load(fromByteOffset: dataStore.index, as: T.self) }
     }
 
+    @inline(__always)
+    func readArray<T>(_ type: T.Type) throws -> [T] where T: Numeric {
+        let size = MemoryLayout<T>.size
+        let count = try readCheckBlockCount(of: size)
+        defer {
+            dataStore.index = dataStore.index.advanced(by: count * size)
+        }
+        return Array<T>.init(unsafeUninitializedCapacity: count) {
+            dataStore.data.copyBytes(to: $0, from: dataStore.index...)
+            $1 = count
+        }
+    }
+    
+    @inline(__always)
+    func readString() throws -> String {
+        let length = try readCheckBlockCount(of: 1)
+
+        defer {
+            dataStore.index = dataStore.index.advanced(by: length)
+        }
+        guard let string = String(data: dataStore.data[dataStore.index..<dataStore.index.advanced(by: length - 1)], encoding: .utf8) else {
+            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
+            throw DecodingError.dataCorrupted(context)
+        }
+        return string
+    }
+    
+    @inline(__always)
+    func readData() throws -> Data {
+        let length = try readCheckBlockCount(of: 1)
+        defer {
+            dataStore.index = dataStore.index.advanced(by: length)
+        }
+        return dataStore.data.subdata(in: dataStore.index..<dataStore.index.advanced(by: length))
+    }
 }

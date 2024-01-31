@@ -59,6 +59,18 @@ class CDRCodablePerformanceTests: XCTestCase {
         }
     }
 
+    func testPerformanceUnkeyedArrayDecode() {
+        let testArray = [Int16].init(repeating: 55, count: 40 * 1024)
+        let cdrData = try! encoder.encode(testArray)
+
+        self.measure {
+            for _ in 1...100 {
+                let testArray1 = try! decoder.decode([Int16].self, from: cdrData)
+                XCTAssertEqual(testArray1[0], 55)
+            }
+        }
+    }
+
     func testPerformanceKeyedArrayEncode() {
         struct TestStruct: Codable {
             let a: [Int16]
@@ -69,6 +81,21 @@ class CDRCodablePerformanceTests: XCTestCase {
             for _ in 1...100 {
                 let cdrData = try! encoder.encode(testStruct)
                 XCTAssertEqual(cdrData.count, 81924)
+            }
+        }
+    }
+
+    func testPerformanceKeyedArrayDecode() {
+        struct TestStruct: Codable {
+            let a: [Int16]
+        }
+        let testStruct = TestStruct(a: .init(repeating: 55, count: 40 * 1024))
+        let cdrData = try! encoder.encode(testStruct)
+        
+        self.measure {
+            for _ in 1...100 {
+                let testStruct1 = try! decoder.decode(TestStruct.self, from: cdrData)
+                XCTAssertEqual(testStruct1.a[0], 55)
             }
         }
     }

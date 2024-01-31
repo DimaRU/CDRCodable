@@ -21,55 +21,45 @@ extension _CDRDecoder {
 
 extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     func contains(_ key: Key) -> Bool {
-        return true
+        true
     }
     
     func decodeNil(forKey key: Key) throws -> Bool {
-        return true
+        true
      }
     
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
-        return try readByte() != 0
+        try read(UInt8.self) != 0
     }
     
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
-        let length = Int(try read(UInt32.self))
-        let data = try read(length - 1)
-        _ = try readByte()
-        
-        guard let string = String(data: data, encoding: .utf8) else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
-            throw DecodingError.dataCorrupted(context)
-        }
-        return string
+        try readString()
     }
     
-    func decode(_ type: Double.Type, forKey key: Key) throws -> Double {
-        let bitPattern = try read(UInt64.self)
-        return Double(bitPattern: bitPattern)
-    }
-
-    func decode(_ type: Float.Type, forKey key: Key) throws -> Float {
-        let bitPattern = try read(UInt32.self)
-        return Float(bitPattern: bitPattern)
-    }
-
-    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : FixedWidthInteger & Decodable {
-        guard let t = T(exactly: try read(T.self)) else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Invalid binary integer format")
-            throw DecodingError.typeMismatch(T.self, context)
-        }
-        return t
+    func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Numeric & Decodable {
+        try read(T.self)
     }
 
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        if T.self is Data.Type {
-            let length = Int(try read(UInt32.self))
-            return try read(length) as! T
+        switch T.self {
+        case is [Double].Type: return try readArray(Double.self) as! T
+        case is [Float].Type: return try readArray(Float.self) as! T
+        case is [Int].Type: return try readArray(Int.self) as! T
+        case is [Int8].Type: return try readArray(Int8.self) as! T
+        case is [Int16].Type: return try readArray(Int16.self) as! T
+        case is [Int32].Type: return try readArray(Int32.self) as! T
+        case is [Int64].Type: return try readArray(Int64.self) as! T
+        case is [UInt].Type: return try readArray(UInt.self) as! T
+        case is [UInt8].Type: return try readArray(UInt8.self) as! T
+        case is [UInt16].Type: return try readArray(UInt16.self) as! T
+        case is [UInt32].Type: return try readArray(UInt32.self) as! T
+        case is [UInt64].Type: return try readArray(UInt64.self) as! T
+        case is Data.Type:
+            return try readData() as! T
+        default:
+            let decoder = _CDRDecoder(data: self.dataStore)
+            return try T(from: decoder)
         }
-        let decoder = _CDRDecoder(data: self.dataStore)
-        let value = try T(from: decoder)
-        return value
     }
     
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
