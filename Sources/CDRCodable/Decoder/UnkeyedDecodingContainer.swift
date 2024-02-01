@@ -6,28 +6,20 @@ extension _CDRDecoder {
         var userInfo: [CodingUserInfoKey: Any]
         var dataStore: DataStore
         
-        lazy var count: Int? = {
-            do {
-                return Int(try read(UInt32.self))
-            } catch {
-                return nil
-            }
-        } ()
-    
-        var currentIndex: Int = 0
-        
-       
-        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) throws {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.dataStore = data
-        }
-        
-        var isAtEnd: Bool {
-            guard let count = self.count else {
-                return true
+            self.dataStore.getCodingPath = {
+                self.codingPath
             }
-            return currentIndex >= count
+            count = Int(try dataStore.read(UInt32.self))
+        }
+
+        var count: Int?
+        var currentIndex: Int = 0
+        var isAtEnd: Bool {
+            currentIndex >= count!
         }
     }
 }
@@ -39,7 +31,7 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
     
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         defer { self.currentIndex += 1 }
-        let decoder = _CDRDecoder(data: self.dataStore)
+        let decoder = _CDRDecoder(dataStore: self.dataStore, userInfo: userInfo)
         let value = try T(from: decoder)
         return value
     }
@@ -56,7 +48,7 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
     }
 
     func superDecoder() throws -> Decoder {
-        return _CDRDecoder(data: self.dataStore)
+        return _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
     }
 }
 

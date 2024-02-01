@@ -1,8 +1,6 @@
 import Foundation
 
-/**
- An object that decodes instances of a data type from CDRCodable objects.
- */
+/// An object that decodes instances of a data type from Common Data Representation binary.
 final public class CDRDecoder {
     public init() {}
     
@@ -12,45 +10,59 @@ final public class CDRDecoder {
      */
     public var userInfo: [CodingUserInfoKey : Any] = [:]
     
-    /**
-     Returns a value of the type you specify,
-     decoded from a CDRCodable object.
-     
-     - Parameters:
-        - type: The type of the value to decode
-                from the supplied CDRCodable object.
-        - data: The CDRCodable object to decode.
-     - Throws: `DecodingError.dataCorrupted(_:)`
-               if the data is not valid CDRCodable.
-     */
+    /// Returns a value of the type you specify, decoded from a Common Data Representation binary data
+    /// - Parameters:
+    ///   - type: The type of the value to decode
+    ///   - data: Common Data Representation binary data, little endian
+    /// - Returns: decoded object
+    /// - Throws: `DecodingError.dataCorrupted(_:)` if the data is not valid
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
-        let decoder = _CDRDecoder(data: _CDRDecoder.DataStore(data: data))
-        decoder.userInfo = self.userInfo
-        
-        return try T(from: decoder)
+        let dataStore = DataStore(data: data)
+        switch T.self {
+        case is [Double].Type: return try dataStore.readArray(Double.self) as! T
+        case is [Float].Type: return try dataStore.readArray(Float.self) as! T
+        case is [Int].Type: return try dataStore.readArray(Int.self) as! T
+        case is [Int8].Type: return try dataStore.readArray(Int8.self) as! T
+        case is [Int16].Type: return try dataStore.readArray(Int16.self) as! T
+        case is [Int32].Type: return try dataStore.readArray(Int32.self) as! T
+        case is [Int64].Type: return try dataStore.readArray(Int64.self) as! T
+        case is [UInt].Type: return try dataStore.readArray(UInt.self) as! T
+        case is [UInt8].Type: return try dataStore.readArray(UInt8.self) as! T
+        case is [UInt16].Type: return try dataStore.readArray(UInt16.self) as! T
+        case is [UInt32].Type: return try dataStore.readArray(UInt32.self) as! T
+        case is [UInt64].Type: return try dataStore.readArray(UInt64.self) as! T
+        case is Data.Type:
+            return try dataStore.readData() as! T
+        default:
+            let decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
+            return try T(from: decoder)
+        }
     }
 }
 
 // MARK: -
 
 
-final class _CDRDecoder {
-    
-    final class DataStore {
-        let data: Data
-        var index: Data.Index
-        init(data: Data) {
-            self.data = data
-            self.index = self.data.startIndex
-        }
+final class DataStore {
+    let data: Data
+    var index: Data.Index
+    var getCodingPath: () -> [CodingKey]
+    init(data: Data) {
+        self.data = data
+        self.index = self.data.startIndex
+        self.getCodingPath = { [] }
     }
+}
+
+final class _CDRDecoder {
     var codingPath: [CodingKey] = []
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    let userInfo: [CodingUserInfoKey : Any]
     var container: _CDRDecodingContainer?
     var dataStore: DataStore
     
-    init(data: DataStore) {
-        self.dataStore = data
+    init(dataStore: DataStore, userInfo: [CodingUserInfoKey : Any]) {
+        self.dataStore = dataStore
+        self.userInfo = userInfo
     }
 }
 
@@ -58,7 +70,7 @@ extension _CDRDecoder: Decoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
         precondition(self.container == nil)
 
-        let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = KeyedContainer<Key>(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return KeyedDecodingContainer(container)
@@ -67,7 +79,7 @@ extension _CDRDecoder: Decoder {
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         precondition(self.container == nil)
 
-        let container = UnkeyedContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = try UnkeyedContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
         self.container = container
 
         return container
@@ -86,23 +98,23 @@ extension _CDRDecoder: Decoder {
 protocol _CDRDecodingContainer {
     var codingPath: [CodingKey] { get set }
     var userInfo: [CodingUserInfoKey : Any] { get }
-    var dataStore: _CDRDecoder.DataStore { get }
+    var dataStore: DataStore { get }
 }
 
-extension _CDRDecodingContainer {
+extension DataStore {
     @inline(__always)
     func align(to aligment: Int) {
-        let offset = self.dataStore.index % aligment
+        let offset = index % aligment
         if offset != 0 {
-            self.dataStore.index = self.dataStore.index.advanced(by: aligment - offset)
+            index = index.advanced(by: aligment - offset)
         }
     }
     
     @inline(__always)
     func checkDataEnd(_ length: Int) throws {
-        let nextIndex = self.dataStore.index.advanced(by: length)
-        guard nextIndex <= self.dataStore.data.endIndex else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Unexpected end of data")
+        let nextIndex = index.advanced(by: length)
+        guard nextIndex <= data.endIndex else {
+            let context = DecodingError.Context(codingPath: getCodingPath(), debugDescription: "Unexpected end of data")
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -117,16 +129,16 @@ extension _CDRDecodingContainer {
     @inline(__always)
     func read<T>(_ type: T.Type) throws -> T where T : Numeric {
         let aligment = MemoryLayout<T>.alignment
-        let offset = self.dataStore.index % aligment
+        let offset = index % aligment
         if offset != 0 {
-            self.dataStore.index = self.dataStore.index.advanced(by: aligment - offset)
+            index = index.advanced(by: aligment - offset)
         }
         let stride = MemoryLayout<T>.stride
         try checkDataEnd(stride)
         defer {  
-            dataStore.index = dataStore.index.advanced(by: stride)
+            index = index.advanced(by: stride)
         }
-        return dataStore.data.withUnsafeBytes{ $0.load(fromByteOffset: dataStore.index, as: T.self) }
+        return data.withUnsafeBytes{ $0.load(fromByteOffset: index, as: T.self) }
     }
 
     @inline(__always)
@@ -134,10 +146,10 @@ extension _CDRDecodingContainer {
         let size = MemoryLayout<T>.size
         let count = try readCheckBlockCount(of: size)
         defer {
-            dataStore.index = dataStore.index.advanced(by: count * size)
+            index = index.advanced(by: count * size)
         }
         return Array<T>.init(unsafeUninitializedCapacity: count) {
-            dataStore.data.copyBytes(to: $0, from: dataStore.index...)
+            data.copyBytes(to: $0, from: index...)
             $1 = count
         }
     }
@@ -147,10 +159,10 @@ extension _CDRDecodingContainer {
         let length = try readCheckBlockCount(of: 1)
 
         defer {
-            dataStore.index = dataStore.index.advanced(by: length)
+            index = index.advanced(by: length)
         }
-        guard let string = String(data: dataStore.data[dataStore.index..<dataStore.index.advanced(by: length - 1)], encoding: .utf8) else {
-            let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
+        guard let string = String(data: data[index..<index.advanced(by: length - 1)], encoding: .utf8) else {
+            let context = DecodingError.Context(codingPath: getCodingPath(), debugDescription: "Couldn't decode string with UTF-8 encoding")
             throw DecodingError.dataCorrupted(context)
         }
         return string
@@ -160,8 +172,8 @@ extension _CDRDecodingContainer {
     func readData() throws -> Data {
         let length = try readCheckBlockCount(of: 1)
         defer {
-            dataStore.index = dataStore.index.advanced(by: length)
+            index = index.advanced(by: length)
         }
-        return dataStore.data.subdata(in: dataStore.index..<dataStore.index.advanced(by: length))
+        return data.subdata(in: index..<index.advanced(by: length))
     }
 }

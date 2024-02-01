@@ -10,6 +10,9 @@ extension _CDRDecoder {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.dataStore = data
+            self.dataStore.getCodingPath = {
+                self.codingPath
+            }
         }
     }
 }
@@ -20,23 +23,23 @@ extension _CDRDecoder.SingleValueContainer: SingleValueDecodingContainer {
     }
     
     func decode(_ type: Bool.Type) throws -> Bool {
-        try read(UInt8.self) != 0
+        try dataStore.read(UInt8.self) != 0
     }
     
     func decode(_ type: String.Type) throws -> String {
-        try readString()
+        try dataStore.readString()
     }
     
     func decode<T>(_ type: T.Type) throws -> T where T : Numeric & Decodable {
-        try read(T.self)
+        try dataStore.read(T.self)
     }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         switch type {
         case is Data.Type:
-            return try readData() as! T
+            return try dataStore.readData() as! T
         default:
-            let decoder = _CDRDecoder(data: self.dataStore)
+            let decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
             return try T(from: decoder)
         }
     }
