@@ -1,18 +1,16 @@
 import Foundation
 
 extension _CDRDecoder {
-    final class SingleValueContainer {
-        var codingPath: [CodingKey]
-        var userInfo: [CodingUserInfoKey: Any]
-        var dataStore: DataStore
+    struct SingleValueContainer {
+        let codingPath: [CodingKey]
+        let userInfo: [CodingUserInfoKey: Any]
+        let dataStore: DataStore
 
-        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
+        init(dataStore: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) {
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.dataStore = data
-            self.dataStore.getCodingPath = {
-                self.codingPath
-            }
+            self.dataStore = dataStore
+            self.dataStore.codingPath = codingPath
         }
     }
 }

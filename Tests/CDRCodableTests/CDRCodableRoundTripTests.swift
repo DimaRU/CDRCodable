@@ -62,8 +62,6 @@ class CDRCodableRoundTripTests: XCTestCase {
         struct RovTemperature: Codable, Equatable {
             let temperature: RovTemperature_
             let id: String
-
-            var key: String { return id }
         }
         
         let example = RovTemperature(temperature: RovTemperature_(header: RovHeader(stamp: RovTime(sec: 0,
@@ -80,5 +78,4 @@ class CDRCodableRoundTripTests: XCTestCase {
         let dataBack = try! encoder.encode(value)
         XCTAssertEqual(dataBack, data)
     }
-
 }

@@ -2,7 +2,7 @@
 
 ![Build](https://github.com/DimaRU/CDRCodable/workflows/Build/badge.svg) 
 
-A [OMG Common Data Representation (CDR)](https://www.omg.org/spec/DDS-XTypes/) encoder and decoder for Swift `Codable` types.
+A [OMG Common Data Representation (CDR)](https://www.omg.org/spec/DDS-XTypes/) (PLAIN_CDR) encoder and decoder for Swift `Codable` types.
 
 Now can be used with [FastRTPSSwift](https://github.com/DimaRU/FastRTPSSwift), a Swift wrapper for eProsima [FastDDS](https://github.com/eProsima/Fast-DDS) library.
 
@@ -40,20 +40,9 @@ let value = try! decoder.decode([Int16].self, from: data)
 Add the CDRCodable package to your target dependencies in `Package.swift`:
 
 ```swift
-import PackageDescription
-
-let package = Package(
-  name: "YourProject",
-  dependencies: [
-    .package(
-        url: "https://github.com/DimaRU/CDRCodable",
-        from: "1.0.0"
-    ),
-  ]
-)
+.package(url: "https://github.com/DimaRU/CDRCodable", from: "1.0.0"),
 ```
 
-Then run the `swift build` command to build your project.
 
 ## Supported IDL types
 
@@ -83,10 +72,11 @@ Static size arrays is not supported by CDRCodable directly and needed custom cod
 ### 3. Sequences
 CDRCodable supports sequences, which map between Swift Array and C++ std::vector container. The following table represents how the map between Swift, C++11 and IDL and is handled.
 
-| Swift           | C++11                     | IDL                           |
-| --------------- | ------------------------- | ----------------------------- |
+| Swift            | C++11                     | IDL                           |
+| ---------------- | ------------------------- | ----------------------------- |
+| `Data`           | `std::vector<uint8_t>`    | `sequence<octet>`              |
 | `Array<Int8>`    | `std::vector<char>`       | `sequence<char>`               |
-| `Array<UInt8>` or `Data` | `std::vector<uint8_t>`    | `sequence<octet>`              |
+| `Array<UInt8>`   | `std::vector<uint8_t>`    | `sequence<octet>`              |
 | `Array<Int16>`   | `std::vector<int16_t>`    | `sequence<short>`              |
 | `Array<UInt16>`  | `std::vector<uint16_t>`   | `sequence<unsigned short>`     |
 | `Array<Int32>`   | `std::vector<int32_t>`    | `sequence<long>`               |
@@ -100,19 +90,6 @@ CDRCodable supports sequences, which map between Swift Array and C++ std::vector
 | `Array<String>`  | `std::vector<std::string>`| `sequence<string>`             |
 
 
-| Array\<Int8>    | std::vector\<char>        | sequence\<char>               |
-| Array\<UInt8> or Data | std::vector\<uint8\_t>    | sequence\<octet>              |
-| Array\<Int16>   | std::vector\<int16\_t>    | sequence\<short>              |
-| Array\<UInt16>  | std::vector\<uint16\_t>   | sequence\<unsigned short>     |
-| Array\<Int32>   | std::vector\<int32\_t>    | sequence\<long>               |
-| Array\<UInt32>  | std::vector\<uint32\_t>   | sequence\<unsigned long>      |
-| Array\<Int64>   | std::vector\<int64\_t>    | sequence\<long long>          |
-| Array\<UInt64>  | std::vector\<uint64\_t>   | sequence\<unsigned long long> |
-| Array\<Float>   | std::vector\<float>       | sequence\<float>              |
-| Array\<Double>  | std::vector\<double>      | sequence\<double>             |
-| Array\<Float80> | std::vector\<long double> | sequence\<long double>        |
-| Array\<Bool>    | std::vector\<bool>        | sequence\<boolean>            |
-| Array\<String>  | std::vector\<std::string> | sequence\<string>             |
 
 ### 4. Enumerations
 
@@ -209,7 +186,7 @@ enum ControlUnion: Codable {
     case IntMenu(intMenu: UInt32)
     
     init(from decoder: Decoder) throws {
-        var container = try decoder.unkeyedContainer()
+        var container = try decoder.singleValueContainer()
         let selector = try container.decode(UInt32.self)
         switch selector {
             case 0:
@@ -308,7 +285,7 @@ Example:
 IDL definition:
 
 ```IDL
-struct TridentControlTarget
+struct ControlTarget
 {
     string id;
     
@@ -320,7 +297,7 @@ struct TridentControlTarget
 ```
 
 ```Swift
-struct TridentControlTarget: Codable
+struct ControlTarget: Codable
 {
     let id: String
 

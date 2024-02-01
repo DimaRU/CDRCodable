@@ -1,11 +1,11 @@
 import Foundation
 
 extension _CDRDecoder {
-    final class KeyedContainer<Key> where Key: CodingKey {
-        var dataStore: DataStore
-        var codingPath: [CodingKey]
-        var userInfo: [CodingUserInfoKey: Any]
-        var allKeys: [Key] = []
+    struct KeyedContainer<Key> where Key: CodingKey {
+        let dataStore: DataStore
+        let codingPath: [CodingKey]
+        let userInfo: [CodingUserInfoKey: Any]
+        let allKeys: [Key] = []
 
         func nestedCodingPath(forKey key: CodingKey) -> [CodingKey] {
             return self.codingPath + [key]
@@ -15,9 +15,7 @@ extension _CDRDecoder {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.dataStore = dataStore
-            self.dataStore.getCodingPath = {
-                self.codingPath
-            }
+            self.dataStore.codingPath = codingPath
         }
     }
 }

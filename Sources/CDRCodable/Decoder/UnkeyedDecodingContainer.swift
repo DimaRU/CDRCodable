@@ -1,18 +1,17 @@
 import Foundation
 
 extension _CDRDecoder {
-    final class UnkeyedContainer {
-        var codingPath: [CodingKey]
-        var userInfo: [CodingUserInfoKey: Any]
-        var dataStore: DataStore
+    struct UnkeyedContainer {
+        let codingPath: [CodingKey]
+        let userInfo: [CodingUserInfoKey: Any]
+        let dataStore: DataStore
         
-        init(data: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) throws {
+        init(dataStore: DataStore, codingPath: [CodingKey], userInfo: [CodingUserInfoKey : Any]) throws {
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.dataStore = data
-            self.dataStore.getCodingPath = {
-                self.codingPath
-            }
+            self.dataStore = dataStore
+            
+            self.dataStore.codingPath = codingPath
             count = Int(try dataStore.read(UInt32.self))
         }
 
@@ -29,7 +28,7 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
         return true
     }
     
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         defer { self.currentIndex += 1 }
         let decoder = _CDRDecoder(dataStore: self.dataStore, userInfo: userInfo)
         let value = try T(from: decoder)

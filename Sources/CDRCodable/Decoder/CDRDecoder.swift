@@ -46,11 +46,11 @@ final public class CDRDecoder {
 final class DataStore {
     let data: Data
     var index: Data.Index
-    var getCodingPath: () -> [CodingKey]
+    var codingPath: [CodingKey] = []
+
     init(data: Data) {
         self.data = data
         self.index = self.data.startIndex
-        self.getCodingPath = { [] }
     }
 }
 
@@ -70,7 +70,7 @@ extension _CDRDecoder: Decoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
         precondition(self.container == nil)
 
-        let container = KeyedContainer<Key>(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = KeyedContainer<Key>(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
         self.container = container
 
         return KeyedDecodingContainer(container)
@@ -79,7 +79,7 @@ extension _CDRDecoder: Decoder {
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         precondition(self.container == nil)
 
-        let container = try UnkeyedContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = try UnkeyedContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
         self.container = container
 
         return container
@@ -88,7 +88,7 @@ extension _CDRDecoder: Decoder {
     func singleValueContainer() -> SingleValueDecodingContainer {
         precondition(self.container == nil)
 
-        let container = SingleValueContainer(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        let container = SingleValueContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
         self.container = container
         
         return container
@@ -96,7 +96,7 @@ extension _CDRDecoder: Decoder {
 }
 
 protocol _CDRDecodingContainer {
-    var codingPath: [CodingKey] { get set }
+    var codingPath: [CodingKey] { get }
     var userInfo: [CodingUserInfoKey : Any] { get }
     var dataStore: DataStore { get }
 }
@@ -114,7 +114,7 @@ extension DataStore {
     func checkDataEnd(_ length: Int) throws {
         let nextIndex = index.advanced(by: length)
         guard nextIndex <= data.endIndex else {
-            let context = DecodingError.Context(codingPath: getCodingPath(), debugDescription: "Unexpected end of data")
+            let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Unexpected end of data")
             throw DecodingError.dataCorrupted(context)
         }
     }
@@ -162,7 +162,7 @@ extension DataStore {
             index = index.advanced(by: length)
         }
         guard let string = String(data: data[index..<index.advanced(by: length - 1)], encoding: .utf8) else {
-            let context = DecodingError.Context(codingPath: getCodingPath(), debugDescription: "Couldn't decode string with UTF-8 encoding")
+            let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
             throw DecodingError.dataCorrupted(context)
         }
         return string
