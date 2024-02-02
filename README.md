@@ -2,7 +2,7 @@
 
 ![Build](https://github.com/DimaRU/CDRCodable/workflows/Build/badge.svg) 
 
-A [OMG Common Data Representation (CDR)](https://www.omg.org/spec/DDS-XTypes/) (PLAIN_CDR) encoder and decoder for Swift `Codable` types.
+A [OMG Common Data Representation (CDR)](https://www.omg.org/cgi-bin/doc?formal/02-06-51) (PLAIN_CDR) encoder and decoder for Swift `Codable` types.
 
 Now can be used with [FastRTPSSwift](https://github.com/DimaRU/FastRTPSSwift), a Swift wrapper for eProsima [FastDDS](https://github.com/eProsima/Fast-DDS) library.
 
@@ -169,8 +169,8 @@ union ControlUnion switch (unsigned long)
 Swift
 
 ```Swift
-enum ControlUnion: Codable {
-    case S8(value: Int8)
+enum ControlUnion: UInt32, Codable {
+    case S8(value: Int8) = 0
     case S16(value: Int16)
     case S32(value: Int32)
     case S64(value: Int64)
@@ -239,24 +239,7 @@ enum ControlUnion: Codable {
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        let selector: UInt32
-        switch self {
-        case .S8 : selector = 0
-        case .S16 : selector = 1
-        case .S32 : selector = 2
-        case .S64 : selector = 3
-        case .U8 : selector = 4
-        case .U16 : selector = 5
-        case .U32 : selector = 6
-        case .U64 : selector = 7
-        case .Bitmask : selector = 8
-        case .Button : selector = 9
-        case .Boolean : selector = 10
-        case .StringValue : selector = 11
-        case .StringMenu : selector = 12
-        case .IntMenu : selector = 13
-        }
-        try container.encode(selector)
+        try container.encode(self.rawValue)
         switch self {
         case .S8(value: let value): try container.encode(value)
         case .S16(value: let value): try container.encode(value)
