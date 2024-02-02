@@ -67,7 +67,7 @@ The following table shows the basic IDL types supported by CDRCodable and how th
 | String  | std::string | string             |
 
 ### 2. Arrays
-Static size arrays is not supported by CDRCodable directly and needed custom coding.
+Fixed size arrays is not supported by CDRCodable directly and needed custom coding.
 
 ### 3. Sequences
 CDRCodable supports sequences, which map between Swift Array and C++ std::vector container. The following table represents how the map between Swift, C++11 and IDL and is handled.

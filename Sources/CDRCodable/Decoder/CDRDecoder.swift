@@ -18,7 +18,7 @@ final public class CDRDecoder {
     /// - Throws: `DecodingError.dataCorrupted(_:)` if the data is not valid
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let dataStore = DataStore(data: data)
-        switch T.self {
+        switch type {
         case is [Double].Type: return try dataStore.readArray(Double.self) as! T
         case is [Float].Type: return try dataStore.readArray(Float.self) as! T
         case is [Int].Type: return try dataStore.readArray(Int.self) as! T
@@ -45,12 +45,14 @@ final public class CDRDecoder {
 
 final class DataStore {
     let data: Data
-    var index: Data.Index
+    let beginIndex: Data.Index
+    var cursor: Data.Index
     var codingPath: [CodingKey] = []
 
     init(data: Data) {
         self.data = data
-        self.index = self.data.startIndex
+        self.beginIndex = self.data.startIndex
+        self.cursor = self.data.startIndex
     }
 }
 
@@ -104,15 +106,15 @@ protocol _CDRDecodingContainer {
 extension DataStore {
     @inline(__always)
     func align(to aligment: Int) {
-        let offset = index % aligment
+        let offset = (cursor - beginIndex) % aligment
         if offset != 0 {
-            index = index.advanced(by: aligment - offset)
+            cursor = cursor.advanced(by: aligment - offset)
         }
     }
     
     @inline(__always)
     func checkDataEnd(_ length: Int) throws {
-        let nextIndex = index.advanced(by: length)
+        let nextIndex = cursor.advanced(by: length)
         guard nextIndex <= data.endIndex else {
             let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Unexpected end of data")
             throw DecodingError.dataCorrupted(context)
@@ -128,30 +130,13 @@ extension DataStore {
     
     @inline(__always)
     func read<T>(_ type: T.Type) throws -> T where T : Numeric {
-        let aligment = MemoryLayout<T>.alignment
-        let offset = index % aligment
-        if offset != 0 {
-            index = index.advanced(by: aligment - offset)
-        }
+        align(to: MemoryLayout<T>.alignment)
         let stride = MemoryLayout<T>.stride
         try checkDataEnd(stride)
         defer {  
-            index = index.advanced(by: stride)
+            cursor = cursor.advanced(by: stride)
         }
-        return data.withUnsafeBytes{ $0.load(fromByteOffset: index, as: T.self) }
-    }
-
-    @inline(__always)
-    func readArray<T>(_ type: T.Type) throws -> [T] where T: Numeric {
-        let size = MemoryLayout<T>.size
-        let count = try readCheckBlockCount(of: size)
-        defer {
-            index = index.advanced(by: count * size)
-        }
-        return Array<T>.init(unsafeUninitializedCapacity: count) {
-            data.copyBytes(to: $0, from: index...)
-            $1 = count
-        }
+        return data.withUnsafeBytes{ $0.load(fromByteOffset: cursor - beginIndex, as: T.self) }
     }
     
     @inline(__always)
@@ -159,9 +144,9 @@ extension DataStore {
         let length = try readCheckBlockCount(of: 1)
 
         defer {
-            index = index.advanced(by: length)
+            cursor = cursor.advanced(by: length)
         }
-        guard let string = String(data: data[index..<index.advanced(by: length - 1)], encoding: .utf8) else {
+        guard let string = String(data: data[cursor..<cursor.advanced(by: length - 1)], encoding: .utf8) else {
             let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Couldn't decode string with UTF-8 encoding")
             throw DecodingError.dataCorrupted(context)
         }
@@ -172,8 +157,35 @@ extension DataStore {
     func readData() throws -> Data {
         let length = try readCheckBlockCount(of: 1)
         defer {
-            index = index.advanced(by: length)
+            cursor = cursor.advanced(by: length)
         }
-        return data.subdata(in: index..<index.advanced(by: length))
+        return data.subdata(in: cursor..<cursor.advanced(by: length))
+    }
+
+    @inline(__always)
+    func readArray<T>(_ type: T.Type) throws -> [T] where T: Numeric {
+        let size = MemoryLayout<T>.size
+        let count = try readCheckBlockCount(of: size)
+        defer {
+            cursor = cursor.advanced(by: count * size)
+        }
+        return Array<T>.init(unsafeUninitializedCapacity: count) {
+            let _: Int = data.copyBytes(to: $0, from: cursor...)
+            $1 = count
+        }
+    }
+    
+    @inline(__always)
+    func readFixedArray<T>(_ type: T.Type, count: Int) throws -> [T] where T: Numeric {
+        align(to: MemoryLayout<T>.alignment)
+        let stride = MemoryLayout<T>.stride
+        try checkDataEnd(count * stride)
+        defer {
+            cursor = cursor.advanced(by: count * stride)
+        }
+        return Array<T>.init(unsafeUninitializedCapacity: count) {
+            let _: Int = data.copyBytes(to: $0, from: cursor...)
+            $1 = count
+        }
     }
 }
