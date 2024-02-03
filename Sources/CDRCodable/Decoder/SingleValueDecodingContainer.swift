@@ -1,3 +1,8 @@
+/////
+////  SingleValueDecodingContainer.swift
+///   Copyright © 2024 Dmitriy Borovikov. All rights reserved.
+//
+
 import Foundation
 
 extension _CDRDecoder {

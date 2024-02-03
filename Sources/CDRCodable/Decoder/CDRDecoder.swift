@@ -1,3 +1,8 @@
+/////
+////  CDRDecoder.swift
+///   Copyright © 2024 Dmitriy Borovikov. All rights reserved.
+//
+
 import Foundation
 
 /// An object that decodes instances of a data type from Common Data Representation binary.

@@ -1,3 +1,8 @@
+/////
+////  CDRCodablePerformanceTests.swift
+///   Copyright © 2024 Dmitriy Borovikov. All rights reserved.
+//
+
 import XCTest
 @testable import CDRCodable
 
