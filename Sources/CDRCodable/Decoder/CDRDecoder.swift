@@ -141,7 +141,7 @@ extension DataStore {
         defer {  
             cursor = cursor.advanced(by: stride)
         }
-        return data.withUnsafeBytes{ $0.load(fromByteOffset: cursor - beginIndex, as: T.self) }
+        return data.withUnsafeBytes{ $0.loadUnaligned(fromByteOffset: cursor - beginIndex, as: T.self) }
     }
     
     @inline(__always)
