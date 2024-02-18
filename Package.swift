@@ -10,7 +10,7 @@ let package = Package(
         .plugin(name: "Msg2swiftCommand", targets: ["Msg2swiftCommand"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/DimaRU/Msg2swift.git", branch: "develop")
+        .package(url: "https://github.com/DimaRU/Msg2swift.git", branch: "master")
     ],
     targets: [
         .target(
