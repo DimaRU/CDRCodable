@@ -6,9 +6,11 @@ A [OMG Common Data Representation (CDR)](https://www.omg.org/cgi-bin/doc?formal/
 
 Now can be used with [FastRTPSSwift](https://github.com/DimaRU/FastRTPSSwift), a Swift wrapper for eProsima [FastDDS](https://github.com/eProsima/Fast-DDS) library.
 
+Use [msg2swift](https://github.com/DimaRU/Msg2swift) to automatically generate Swift models from ROS `.msg` files.
+
 ## Requirements
 
-- Swift 5.6+
+- Swift 5.8+
 
 ## Usage
 
@@ -44,30 +46,66 @@ Add the CDRCodable package to your target dependencies in `Package.swift`:
 ```
 
 
-## Supported IDL types
+## Supported IDL/ROS types
 
 ### 1. Primitive types
 
 The following table shows the basic IDL types supported by CDRCodable and how they are mapped to Swift and C++11.
 
-| Swift   | C++11       | IDL                |
-| ------- | ----------- | ------------------ |
-| Int8    | char        | char               |
-| UInt8   | uint8\_t    | octet              |
-| Int16   | int16\_t    | short              |
-| UInt16  | uint16\_t   | unsigned short     |
-| Int32   | int32\_t    | long               |
-| UInt32  | uint32\_t   | unsigned long      |
-| Int64   | int64\_t    | long long          |
-| UInt64  | uint64\_t   | unsigned long long |
-| Float   | float       | float              |
-| Double  | double      | double             |
-| Float80 | long double | long double        |
-| Bool    | bool        | boolean            |
-| String  | std::string | string             |
+| Swift   | C++11       | ROS     | IDL                |
+| ------- | ----------- | ------- | ------------------ |
+| Int8    | char        | int8    | char               |
+| UInt8   | uint8\_t    | uint8   | octet              |
+| Int16   | int16\_t    | int16   | short              |
+| UInt16  | uint16\_t   | uint16  | unsigned short     |
+| Int32   | int32\_t    | int32   | long               |
+| UInt32  | uint32\_t   | uint32  | unsigned long      |
+| Int64   | int64\_t    | int64   | long long          |
+| UInt64  | uint64\_t   | uint64  | unsigned long long |
+| Float   | float       | float32 | float              |
+| Double  | double      | float64 | double             |
+| Bool    | bool        | bool    | boolean            |
+| String  | std::string | string  | string             |
 
 ### 2. Arrays
-Fixed size arrays is not supported by CDRCodable directly and needed custom coding.
+Starting from version 1.1.1 CDRCodable supports fixed-size arrays. The high 16 bits of CodingKeys are used for this purpose. Declare CodingKeys as Int and write in the high 16 bits the required array size and property must be declared as Array. The lower 16 bits are not used.  Note: Be careful when numbering CodingKeys! Use [msg2swift](https://github.com/DimaRU/Msg2swift) to create CodingKeys automatically.
+Sample CodingKeys declaration for [sensor_msgs/CameraInfo](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html):
+
+```swift
+//
+// CameraInfo.swift
+//
+// This file was generated from ROS message file using msg2swift.
+//
+
+struct CameraInfo: Codable {
+    let header: Header
+    let height: UInt32
+    let width: UInt32
+    let distortionModel: String
+    let d: [Double]
+    let k: [Double]
+    let r: [Double]
+    let p: [Double]
+    let binningX: UInt32
+    let binningY: UInt32
+    let roi: RegionOfInterest
+
+    enum CodingKeys: Int, CodingKey {
+        case header = 1
+        case height = 2
+        case width = 3
+        case distortionModel = 4
+        case d = 5
+        case k = 0x90006
+        case r = 0x90007
+        case p = 0xc0008
+        case binningX = 9
+        case binningY = 10
+        case roi = 11
+    }
+}
+```
 
 ### 3. Sequences
 CDRCodable supports sequences, which map between Swift Array and C++ std::vector container. The following table represents how the map between Swift, C++11 and IDL and is handled.
@@ -85,7 +123,6 @@ CDRCodable supports sequences, which map between Swift Array and C++ std::vector
 | `Array<UInt64>`  | `std::vector<uint64_t>`   | `sequence<unsigned long long>` |
 | `Array<Float>`   | `std::vector<float>`      | `sequence<float>`              |
 | `Array<Double>`  | `std::vector<double>`     | `sequence<double>`             |
-| `Array<Float80>` | `std::vector<long double>`| `sequence<long double>`        |
 | `Array<Bool>`    | `std::vector<bool>`       | `sequence<boolean>`            |
 | `Array<String>`  | `std::vector<std::string>`| `sequence<string>`             |
 
