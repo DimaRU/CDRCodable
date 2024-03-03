@@ -46,7 +46,6 @@ final public class CDREncoder {
             let encoder: _CDREncoder = _CDREncoder(data: dataStore)
             encoder.userInfo = self.userInfo
             try value.encode(to: encoder)
-            encoder.container?.closeContainer()    // finalize dataBlock changes.
         }
 
         // Final data aligment
@@ -66,7 +65,6 @@ protocol _CDREncodingContainer {
     var dataStore: _CDREncoder.DataStore { get }
     var codingPath: [CodingKey] { get set }
     func write(count: Int) throws
-    func closeContainer()
 }
 
 final class _CDREncoder {
