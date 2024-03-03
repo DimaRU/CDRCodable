@@ -83,4 +83,30 @@ class CDRCodableRoundTripTests: XCTestCase {
         let dataBack = try! encoder.encode(value)
         XCTAssertEqual(dataBack, data)
     }
+
+    func testArrayOfStruct() {
+        struct Test: Codable, Equatable {
+            let a: Int32
+            let b: Int32
+        }
+        let example = [Test(a: 1, b: 2), Test(a: 3, b: 4)]
+        let data = try! encoder.encode(example)
+        let exampleBack = try! decoder.decode([Test].self, from: data)
+        XCTAssertEqual(example, exampleBack)
+    }
+
+    func testStructWithAlignment() {
+        struct TestStruct: Codable, Equatable {
+            let a: [Int8]
+            let b: [Int16]
+            let c: [Int16]
+            let d: [Int32]
+            let e: [Int64]
+        }
+
+        let example = TestStruct(a: [1], b: [2], c: [3], d: [4], e: [5])
+        let data = try! encoder.encode(example)
+        let exampleBack = try! decoder.decode(TestStruct.self, from: data)
+        XCTAssertEqual(example, exampleBack)
+    }
 }
