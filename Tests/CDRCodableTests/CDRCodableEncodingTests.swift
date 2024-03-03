@@ -142,4 +142,22 @@ class CDRCodableEncodingTests: XCTestCase {
             0x01, 0, 0, 0, 0x02, 0, 0, 0,
             0x03, 0, 0, 0, 0x04, 0, 0, 0]))
     }
+
+    func testEncodeArrayOfStructWithAlignment() {
+        struct TestStruct: Codable {
+            let a: String
+            let b: [TestStruct2]
+        }
+        struct TestStruct2: Codable {
+            let a: Int32
+            let b: Int32
+        }
+        let value = TestStruct(a: "a", b: [TestStruct2(a: 1, b: 2), TestStruct2(a: 3, b: 4)])
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x02, 0, 0, 0, 0x61, 0, 0, 0,
+            0x02, 0, 0, 0,
+            0x01, 0, 0, 0, 0x02, 0, 0, 0,
+            0x03, 0, 0, 0, 0x04, 0, 0, 0]))
+    }
 }
