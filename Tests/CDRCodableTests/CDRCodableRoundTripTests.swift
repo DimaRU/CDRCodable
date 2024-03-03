@@ -89,10 +89,13 @@ class CDRCodableRoundTripTests: XCTestCase {
             let a: Int32
             let b: Int32
         }
-        let example = [Test(a: 1, b: 2), Test(a: 3, b: 4)]
-        let data = try! encoder.encode(example)
-        let exampleBack = try! decoder.decode([Test].self, from: data)
-        XCTAssertEqual(example, exampleBack)
+        let data = Data([
+            0x02, 0, 0, 0,
+            0x01, 0, 0, 0, 0x02, 0, 0, 0,
+            0x03, 0, 0, 0, 0x04, 0, 0, 0])
+        let example = try! decoder.decode([Test].self, from: data)
+        let dataBack = try! encoder.encode(example)
+        XCTAssertEqual(data, dataBack)
     }
 
     func testStructWithAlignment() {
@@ -105,8 +108,36 @@ class CDRCodableRoundTripTests: XCTestCase {
         }
 
         let example = TestStruct(a: [1], b: [2], c: [3], d: [4], e: [5])
-        let data = try! encoder.encode(example)
-        let exampleBack = try! decoder.decode(TestStruct.self, from: data)
-        XCTAssertEqual(example, exampleBack)
+        do {
+            let data = try encoder.encode(example)
+            let exampleBack = try decoder.decode(TestStruct.self, from: data)
+            XCTAssertEqual(example, exampleBack)
+        } catch {
+            XCTFail()
+        }
+    }
+
+    func testNestedStructWithAlignment() {
+        struct TestStruct: Codable, Equatable {
+            let a: [Int8]
+            let b: [Int16]
+            let c: [Int16]
+            let d: [Int32]
+            let e: [Int64]
+        }
+        struct TestNestedStruct: Codable, Equatable {
+            let a: TestStruct
+            let b: TestStruct
+        }
+        let example = TestNestedStruct(
+            a: TestStruct(a: [1], b: [2], c: [3], d: [4], e: [5]),
+            b: TestStruct(a: [1], b: [2], c: [3], d: [4], e: [5]))
+        do {
+            let data = try encoder.encode(example)
+            let exampleBack = try decoder.decode(TestNestedStruct.self, from: data)
+            XCTAssertEqual(example, exampleBack)
+        } catch {
+            XCTFail()
+        }
     }
 }
