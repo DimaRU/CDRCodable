@@ -16,7 +16,6 @@ extension _CDREncoder {
             self.userInfo = userInfo
             self.dataStore = dataStore
         }
-        func closeContainer() {}
     }
 }
 

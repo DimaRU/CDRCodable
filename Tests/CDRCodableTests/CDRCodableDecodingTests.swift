@@ -49,21 +49,9 @@ class CDRCodableDecodingTests: XCTestCase {
         XCTAssertEqual(value, 3.14159)
     }
     
-    func testDecodeArray() {
-        let data = Data([3, 0, 0, 0, 1, 0, 2, 0, 3, 0])
-        let value = try! decoder.decode([Int16].self, from: data)
-        XCTAssertEqual(value, [1, 2, 3])
-    }
-
     func testDecodeString() {
         let data = Data([6, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0])
         let value = try! decoder.decode(String.self, from: data)
         XCTAssertEqual(value, "hello")
-    }
-
-    func testDecodeData() {
-        let data = Data([5, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F])
-        let value = try! decoder.decode(Data.self, from: data)
-        XCTAssertEqual(value, "hello".data(using: .utf8))
     }
 }

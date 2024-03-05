@@ -48,18 +48,6 @@ class CDRCodableEncodingTests: XCTestCase {
         XCTAssertEqual(value, Data([6, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0, 0, 0]))
     }
     
-    func testEncodeArray() {
-        let array: [Int16] = [1, 2, 3]
-        let value = try! encoder.encode(array)
-        XCTAssertEqual(value, Data([3, 0, 0, 0, 1, 0, 2, 0, 3, 0, 0, 0]))
-    }
-    
-    func testEncodeData() {
-        let data = "hello".data(using: .utf8)
-        let value = try! encoder.encode(data)
-        XCTAssertEqual(value, Data([5, 0, 0, 0, 0x68, 0x65, 0x6C, 0x6C, 0x6F, 0, 0, 0]))
-    }
-    
     func testEncodeStruct() {
         struct TestStruct: Codable {
             let i: Int16

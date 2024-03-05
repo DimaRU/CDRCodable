@@ -64,7 +64,7 @@ final class DataStore {
 final class _CDRDecoder {
     var codingPath: [CodingKey] = []
     let userInfo: [CodingUserInfoKey : Any]
-    var container: _CDRDecodingContainer?
+    fileprivate var container: _CDRDecodingContainer?
     var dataStore: DataStore
     
     init(dataStore: DataStore, userInfo: [CodingUserInfoKey : Any]) {

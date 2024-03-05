@@ -161,5 +161,4 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
 }
 
 extension _CDREncoder.KeyedContainer: _CDREncodingContainer {
-    func closeContainer() {}
 }
