@@ -25,8 +25,9 @@ extension _CDREncoder {
 
 extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     @inline(__always)
-    private func encodeNumericArray(count: Int, pointer: UnsafeRawBufferPointer) throws {
+    private func encodeNumericArray(alignment: Int, count: Int, pointer: UnsafeRawBufferPointer) throws {
         try write(count: count)
+        dataStore.align(alignment)
         dataStore.data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: pointer.count)
     }
 
@@ -119,18 +120,18 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
             return
         }
         switch value {
-        case let value as [Int]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int8]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int16]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int32]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Int64]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt8]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt16]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt32]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [UInt64]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Float]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
-        case let value as [Double]: try encodeNumericArray(count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int]: try encodeNumericArray(alignment: MemoryLayout<Int>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int8]: try encodeNumericArray(alignment: MemoryLayout<Int8>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int16]: try encodeNumericArray(alignment: MemoryLayout<Int16>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int32]: try encodeNumericArray(alignment: MemoryLayout<Int32>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Int64]: try encodeNumericArray(alignment: MemoryLayout<Int64>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt]: try encodeNumericArray(alignment: MemoryLayout<UInt>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt8]: try encodeNumericArray(alignment: MemoryLayout<UInt8>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt16]: try encodeNumericArray(alignment: MemoryLayout<UInt16>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt32]: try encodeNumericArray(alignment: MemoryLayout<UInt32>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [UInt64]: try encodeNumericArray(alignment: MemoryLayout<UInt64>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Float]: try encodeNumericArray(alignment: MemoryLayout<Float>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
+        case let value as [Double]: try encodeNumericArray(alignment: MemoryLayout<Double>.alignment, count: value.count, pointer: value.withUnsafeBytes{ $0 })
         case let value as Data:
             try write(count: value.count)
             dataStore.write(data: value)

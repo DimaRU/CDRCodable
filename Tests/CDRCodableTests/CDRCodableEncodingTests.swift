@@ -71,4 +71,93 @@ class CDRCodableEncodingTests: XCTestCase {
         let data = try! encoder.encode(value)
         XCTAssertEqual(data, Data([0x55, 0, 0, 0, 0x0c, 0, 0, 0, 0x54, 0x65, 0x73, 0x74, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0, 0x09, 0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 0, 0]))
     }
+
+    func testEncodeStructWithAlignment() {
+        struct TestStruct: Codable {
+            let a: Int8
+            let b: Int16
+            let c: Int16
+            let d: Int32
+            let e: Int64
+        }
+
+        let value = TestStruct(a: 1, b: 2, c: 3, d: 4, e: 5)
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x01, 0, 0x02, 0, 0x03, 0, 0, 0,
+            0x04, 0, 0,    0, 0,    0, 0, 0,
+            0x05, 0, 0,    0, 0,    0, 0, 0]))
+    }
+
+    func testEncodeStructArrayWithoutAlignment() {
+        struct TestStruct: Codable {
+            let a: [Int8]
+            let b: [Int16]
+            let c: [Int16]
+            let d: [Int32]
+            let e: [Int64]
+        }
+
+        let value = TestStruct(a: [1, 1, 1, 1], b: [2, 2], c: [3, 3], d: [4, 4], e: [5])
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x04, 0, 0, 0, 0x01, 0x01, 0x01, 0x01,
+            0x02, 0, 0, 0, 0x02, 0,    0x02, 0,
+            0x02, 0, 0, 0, 0x03, 0,    0x03, 0,
+            0x02, 0, 0, 0, 0x04, 0,    0,    0,
+            0x04, 0, 0, 0, 0x01, 0,    0,    0,
+            0x05, 0, 0, 0, 0,    0,    0,    0]))
+    }
+
+    func testEncodeStructArrayWithAlignment() {
+        struct TestStruct: Codable {
+            let a: [Int8]
+            let b: [Int16]
+            let c: [Int16]
+            let d: [Int32]
+            let e: [Int64]
+        }
+
+        let value = TestStruct(a: [1], b: [2], c: [3], d: [4], e: [5])
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x01, 0, 0, 0, 0x01, 0, 0, 0,
+            0x01, 0, 0, 0, 0x02, 0, 0, 0,
+            0x01, 0, 0, 0, 0x03, 0, 0, 0,
+            0x01, 0, 0, 0, 0x04, 0, 0, 0,
+            0x01, 0, 0, 0, 0,    0, 0, 0,
+            0x05, 0, 0, 0, 0,    0, 0, 0]))
+    }
+
+    func testEncodeArrayOfStruct() {
+        struct TestStruct: Codable {
+            let a: Int32
+            let b: Int32
+        }
+
+        let value = [TestStruct(a: 1, b: 2), TestStruct(a: 3, b: 4)]
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x02, 0, 0, 0,
+            0x01, 0, 0, 0, 0x02, 0, 0, 0,
+            0x03, 0, 0, 0, 0x04, 0, 0, 0]))
+    }
+
+    func testEncodeArrayOfStructWithAlignment() {
+        struct TestStruct: Codable {
+            let a: String
+            let b: [TestStruct2]
+        }
+        struct TestStruct2: Codable {
+            let a: Int32
+            let b: Int32
+        }
+        let value = TestStruct(a: "a", b: [TestStruct2(a: 1, b: 2), TestStruct2(a: 3, b: 4)])
+        let data = try! encoder.encode(value)
+        XCTAssertEqual(data, Data([
+            0x02, 0, 0, 0, 0x61, 0, 0, 0,
+            0x02, 0, 0, 0,
+            0x01, 0, 0, 0, 0x02, 0, 0, 0,
+            0x03, 0, 0, 0, 0x04, 0, 0, 0]))
+    }
 }

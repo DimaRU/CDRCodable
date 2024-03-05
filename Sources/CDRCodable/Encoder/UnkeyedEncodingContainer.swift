@@ -18,15 +18,8 @@ extension _CDREncoder {
             self.userInfo = userInfo
             self.dataStore = dataStore
             let count: UInt32 = 0
-            self.index = dataStore.data.endIndex
             dataStore.write(value: count)
-        }
-        
-        func closeContainer() {
-            if let count32 = UInt32(exactly: count) {
-                let range = index..<index+MemoryLayout<UInt32>.size
-                self.dataStore.data.replaceSubrange(range, with: count32.bytes)
-            }
+            self.index = dataStore.data.endIndex - MemoryLayout<UInt32>.size
         }
     }
 }
@@ -35,7 +28,13 @@ extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     func encodeNil() throws {}
     
     mutating func encode<T>(_ value: T) throws where T : Encodable {
-        defer { count += 1 }
+        defer {
+            count += 1
+            if let count32 = UInt32(exactly: count) {
+                let range = index..<index+MemoryLayout<UInt32>.size
+                self.dataStore.data.replaceSubrange(range, with: count32.bytes)
+            }
+        }
         let encoder = _CDREncoder(data: self.dataStore)
         try value.encode(to: encoder)
     }

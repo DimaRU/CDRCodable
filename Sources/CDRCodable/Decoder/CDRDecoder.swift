@@ -171,6 +171,7 @@ extension DataStore {
     func readArray<T>(_ type: T.Type) throws -> [T] where T: Numeric {
         let size = MemoryLayout<T>.size
         let count = try readCheckBlockCount(of: size)
+        align(to: MemoryLayout<T>.alignment)
         defer {
             cursor = cursor.advanced(by: count * size)
         }
