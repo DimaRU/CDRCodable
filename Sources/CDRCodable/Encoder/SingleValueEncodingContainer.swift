@@ -33,7 +33,7 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
     
     func encode(_ value: String) throws {
         guard let data = value.data(using: .utf8) else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string using UTF-8 encoding.")
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Can't encode string using UTF-8 encoding.")
             throw EncodingError.invalidValue(value, context)
         }
         let length = data.count + 1

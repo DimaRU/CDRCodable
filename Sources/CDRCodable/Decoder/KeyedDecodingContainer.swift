@@ -69,7 +69,7 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
                     stringArray.append(try dataStore.readString())
                 }
             default:
-                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Non Array<Numberic> type as fixed array")
+                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Fixed array type is't Array<Numeric> or Array<String>")
                 throw DecodingError.typeMismatch(T.self, context)
             }
         }

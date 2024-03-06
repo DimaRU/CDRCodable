@@ -43,7 +43,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     @inline(__always)
     private func writeString(_ s: String) throws {
         guard let data = s.data(using: .utf8) else {
-            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode string using UTF-8 encoding.")
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Can't encode string using UTF-8 encoding.")
             throw EncodingError.invalidValue(s, context)
         }
         let length = data.count + 1

@@ -127,9 +127,9 @@ extension DataStore {
     }
     
     @inline(__always)
-    func readCheckBlockCount(of size: Int) throws -> Int {
+    func readCheckBlockCount() throws -> Int {
         let length = Int(try read(UInt32.self))
-        try checkDataEnd(length * size)
+        try checkDataEnd(length)
         return length
     }
     
@@ -146,7 +146,7 @@ extension DataStore {
     
     @inline(__always)
     func readString() throws -> String {
-        let length = try readCheckBlockCount(of: 1)
+        let length = try readCheckBlockCount()
 
         defer {
             cursor = cursor.advanced(by: length)
@@ -160,7 +160,7 @@ extension DataStore {
     
     @inline(__always)
     func readData() throws -> Data {
-        let length = try readCheckBlockCount(of: 1)
+        let length = try readCheckBlockCount()
         defer {
             cursor = cursor.advanced(by: length)
         }
@@ -170,8 +170,9 @@ extension DataStore {
     @inline(__always)
     func readArray<T>(_ type: T.Type) throws -> [T] where T: Numeric {
         let size = MemoryLayout<T>.size
-        let count = try readCheckBlockCount(of: size)
+        let count = Int(try read(UInt32.self))
         align(to: MemoryLayout<T>.alignment)
+        try checkDataEnd(count * size)
         defer {
             cursor = cursor.advanced(by: count * size)
         }

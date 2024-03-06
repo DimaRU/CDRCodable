@@ -56,7 +56,7 @@ class CDRCodableDecodingArrayTests: XCTestCase {
         XCTAssertEqual(value, [1, 2, 3])
     }
 
-    func testDecodeArrayDoble() {
+    func testDecodeArrayDouble() {
         let data = Data([3, 0, 0, 0,
                          0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0xf0, 0x3f,

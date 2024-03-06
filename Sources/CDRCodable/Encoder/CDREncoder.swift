@@ -49,12 +49,7 @@ final public class CDREncoder {
         }
 
         // Final data aligment
-        let aligment = dataStore.data.count % 4
-        if aligment != 0 {
-            for _ in 0..<4-aligment {
-                dataStore.data.append(0)
-            }
-        }
+        dataStore.align(MemoryLayout<Int32>.alignment)
         return dataStore.data
     }
 }
@@ -115,6 +110,7 @@ extension _CDREncoder: Encoder {
 }
 
 extension _CDREncoder.DataStore {
+    @inline(__always)
     func align(_ alignment: Int) {
         let offset = self.data.count % alignment
         if offset != 0 {
@@ -135,10 +131,7 @@ extension _CDREncoder.DataStore {
     @inline(__always)
     func write<T>(value: T) where T: Numeric {
         let alignment = MemoryLayout<T>.alignment
-        let offset = self.data.count % alignment
-        if offset != 0 {
-            self.data.append(contentsOf: Array(repeating: UInt8(0), count: alignment - offset))
-        }
+        align(alignment)
         self.data.append(contentsOf: value.bytes)
     }
     

@@ -12,7 +12,7 @@ class CDRCodableEncodingArrayTests: XCTestCase {
     override func setUp() {
         self.encoder = CDREncoder()
     }
-
+    
     func testEncodeData() {
         let data = "hello".data(using: .utf8)
         let value = try! encoder.encode(data)
@@ -24,7 +24,7 @@ class CDRCodableEncodingArrayTests: XCTestCase {
         let value = try! encoder.encode(array)
         XCTAssertEqual(value, Data([3, 0, 0, 0, 0xff, 2, 3, 0]))
     }
-
+    
     func testEncodeArray16() {
         let array: [Int16] = [-1, 2, 3]
         let value = try! encoder.encode(array)
@@ -36,7 +36,7 @@ class CDRCodableEncodingArrayTests: XCTestCase {
         let value = try! encoder.encode(array)
         XCTAssertEqual(value, Data([3, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 2, 0, 0, 0, 3, 0, 0, 0]))
     }
-
+    
     func testEncodeArray64() {
         let array: [Int64] = [-1, 2, 3]
         let value = try! encoder.encode(array)
@@ -46,7 +46,7 @@ class CDRCodableEncodingArrayTests: XCTestCase {
                                     2, 0, 0, 0, 0, 0, 0, 0,
                                     3, 0, 0, 0, 0, 0, 0, 0]))
     }
-
+    
     func testEncodeArrayFloat() {
         let array: [Float] = [1, 2, 3]
         let value = try! encoder.encode(array)
@@ -55,7 +55,7 @@ class CDRCodableEncodingArrayTests: XCTestCase {
                                     0, 0, 0, 0x40,
                                     0, 0, 0x40, 0x40]))
     }
-
+    
     func testEncodeArrayDouble() {
         let array: [Double] = [1, 2, 3]
         let value = try! encoder.encode(array)
