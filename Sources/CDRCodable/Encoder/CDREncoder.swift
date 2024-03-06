@@ -43,8 +43,7 @@ final public class CDREncoder {
             try dataStore.write(count: value.count)
             dataStore.write(data: value)
         default:
-            let encoder: _CDREncoder = _CDREncoder(data: dataStore)
-            encoder.userInfo = self.userInfo
+            let encoder: _CDREncoder = _CDREncoder(data: dataStore, userInfo: userInfo)
             try value.encode(to: encoder)
         }
 
@@ -62,7 +61,7 @@ protocol _CDREncodingContainer {
     func write(count: Int) throws
 }
 
-final class _CDREncoder {
+struct _CDREncoder {
     final class DataStore {
         var data: Data
         init(capacity: Int) {
@@ -72,39 +71,27 @@ final class _CDREncoder {
     
     var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey : Any] = [:]
-    fileprivate var container: _CDREncodingContainer?
     var dataStore: DataStore
     
-    init(data: DataStore) {
+    init(data: DataStore, userInfo: [CodingUserInfoKey : Any]) {
         self.dataStore = data
+        self.userInfo = userInfo
     }
 }
 
 extension _CDREncoder: Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-        precondition(self.container == nil)
-
         let container = KeyedContainer<Key>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
-        self.container = container
-        
         return KeyedEncodingContainer(container)
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        precondition(self.container == nil)
-
         let container = UnkeyedContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
-        self.container = container
-        
         return container
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        precondition(self.container == nil)
-
         let container = SingleValueContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
-        self.container = container
-        
         return container
     }
 }

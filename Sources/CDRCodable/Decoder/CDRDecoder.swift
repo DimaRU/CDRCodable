@@ -61,10 +61,9 @@ final class DataStore {
     }
 }
 
-final class _CDRDecoder {
+struct _CDRDecoder {
     var codingPath: [CodingKey] = []
     let userInfo: [CodingUserInfoKey : Any]
-    fileprivate var container: _CDRDecodingContainer?
     var dataStore: DataStore
     
     init(dataStore: DataStore, userInfo: [CodingUserInfoKey : Any]) {
@@ -75,29 +74,17 @@ final class _CDRDecoder {
 
 extension _CDRDecoder: Decoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        precondition(self.container == nil)
-
         let container = KeyedContainer<Key>(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
-        self.container = container
-
         return KeyedDecodingContainer(container)
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        precondition(self.container == nil)
-
         let container = try UnkeyedContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
-        self.container = container
-
         return container
     }
     
     func singleValueContainer() -> SingleValueDecodingContainer {
-        precondition(self.container == nil)
-
         let container = SingleValueContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
-        self.container = container
-        
         return container
     }
 }

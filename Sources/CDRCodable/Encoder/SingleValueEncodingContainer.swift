@@ -53,7 +53,7 @@ extension _CDREncoder.SingleValueContainer: SingleValueEncodingContainer {
             try write(count: data.count)
             dataStore.write(data: data)
         default:
-            let encoder = _CDREncoder(data: self.dataStore)
+            let encoder = _CDREncoder(data: self.dataStore, userInfo: self.userInfo)
             try value.encode(to: encoder)
         }
     }

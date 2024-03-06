@@ -136,7 +136,7 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
             try write(count: value.count)
             dataStore.write(data: value)
         default:
-            let encoder = _CDREncoder(data: self.dataStore)
+            let encoder = _CDREncoder(data: self.dataStore, userInfo: self.userInfo)
             try value.encode(to: encoder)
         }
     }

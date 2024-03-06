@@ -28,14 +28,16 @@ extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     func encodeNil() throws {}
     
     mutating func encode<T>(_ value: T) throws where T : Encodable {
+        guard let count32 = UInt32(exactly: count + 1) else {
+            let context = EncodingError.Context(codingPath: self.codingPath, debugDescription: "Cannot encode data of length \(count + 1).")
+            throw EncodingError.invalidValue(count + 1, context)
+        }
+        let range = index..<index+MemoryLayout<UInt32>.size
+        self.dataStore.data.replaceSubrange(range, with: count32.bytes)
         defer {
             count += 1
-            if let count32 = UInt32(exactly: count) {
-                let range = index..<index+MemoryLayout<UInt32>.size
-                self.dataStore.data.replaceSubrange(range, with: count32.bytes)
-            }
         }
-        let encoder = _CDREncoder(data: self.dataStore)
+        let encoder = _CDREncoder(data: self.dataStore, userInfo: self.userInfo)
         try value.encode(to: encoder)
     }
     

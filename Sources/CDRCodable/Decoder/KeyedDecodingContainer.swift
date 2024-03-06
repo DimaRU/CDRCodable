@@ -110,7 +110,7 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     }
     
     func superDecoder(forKey key: Key) throws -> Decoder {
-        let decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
+        var decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
         decoder.codingPath = [key]
         return decoder
     }
