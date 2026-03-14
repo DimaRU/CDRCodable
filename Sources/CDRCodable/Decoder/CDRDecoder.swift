@@ -23,24 +23,21 @@ final public class CDRDecoder {
     /// - Throws: `DecodingError.dataCorrupted(_:)` if the data is not valid
     public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
         let dataStore = DataStore(data: data)
-        switch type {
-        case is [Double].Type: return try dataStore.readArray(Double.self) as! T
-        case is [Float].Type: return try dataStore.readArray(Float.self) as! T
-        case is [Int].Type: return try dataStore.readArray(Int.self) as! T
-        case is [Int8].Type: return try dataStore.readArray(Int8.self) as! T
-        case is [Int16].Type: return try dataStore.readArray(Int16.self) as! T
-        case is [Int32].Type: return try dataStore.readArray(Int32.self) as! T
-        case is [Int64].Type: return try dataStore.readArray(Int64.self) as! T
-        case is [UInt].Type: return try dataStore.readArray(UInt.self) as! T
-        case is [UInt8].Type: return try dataStore.readArray(UInt8.self) as! T
-        case is [UInt16].Type: return try dataStore.readArray(UInt16.self) as! T
-        case is [UInt32].Type: return try dataStore.readArray(UInt32.self) as! T
-        case is [UInt64].Type: return try dataStore.readArray(UInt64.self) as! T
-        case is Data.Type:
-            return try dataStore.readData() as! T
-        default:
-            let decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
-            return try T(from: decoder)
+        return switch type {
+        case is [Double].Type: try dataStore.readArray(Double.self) as! T
+        case is [Float].Type: try dataStore.readArray(Float.self) as! T
+        case is [Int].Type: try dataStore.readArray(Int.self) as! T
+        case is [Int8].Type: try dataStore.readArray(Int8.self) as! T
+        case is [Int16].Type: try dataStore.readArray(Int16.self) as! T
+        case is [Int32].Type: try dataStore.readArray(Int32.self) as! T
+        case is [Int64].Type: try dataStore.readArray(Int64.self) as! T
+        case is [UInt].Type: try dataStore.readArray(UInt.self) as! T
+        case is [UInt8].Type: try dataStore.readArray(UInt8.self) as! T
+        case is [UInt16].Type: try dataStore.readArray(UInt16.self) as! T
+        case is [UInt32].Type: try dataStore.readArray(UInt32.self) as! T
+        case is [UInt64].Type: try dataStore.readArray(UInt64.self) as! T
+        case is Data.Type: try dataStore.readData() as! T
+        default: try T(from: _CDRDecoder(dataStore: dataStore, userInfo: userInfo))
         }
     }
 }

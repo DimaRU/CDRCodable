@@ -152,11 +152,11 @@ extension _CDREncoder.KeyedContainer: KeyedEncodingContainerProtocol {
     }
     
     func superEncoder() -> Encoder {
-        fatalError("Unimplemented")
+        _CDREncoder(data: dataStore, userInfo: userInfo)
     }
     
     func superEncoder(forKey key: Key) -> Encoder {
-        fatalError("Unimplemented")
+        _CDREncoder(data: dataStore, userInfo: userInfo)
     }
 }
 

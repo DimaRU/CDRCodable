@@ -41,14 +41,13 @@ extension _CDRDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
     }
     
     func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-        let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Nested unsupported")
-        throw DecodingError.dataCorrupted(context)
+        let container = try _CDRDecoder.UnkeyedContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
+        return container
     }
     
-    
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Nested unsupported")
-        throw DecodingError.dataCorrupted(context)
+        let container = _CDRDecoder.KeyedContainer<NestedKey>(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
+        return KeyedDecodingContainer(container)
     }
 
     func superDecoder() throws -> Decoder {

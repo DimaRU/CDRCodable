@@ -74,35 +74,33 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
             }
         }
 
-        switch type {
-        case is [Double].Type: return try dataStore.readArray(Double.self) as! T
-        case is [Float].Type: return try dataStore.readArray(Float.self) as! T
-        case is [Int].Type: return try dataStore.readArray(Int.self) as! T
-        case is [Int8].Type: return try dataStore.readArray(Int8.self) as! T
-        case is [Int16].Type: return try dataStore.readArray(Int16.self) as! T
-        case is [Int32].Type: return try dataStore.readArray(Int32.self) as! T
-        case is [Int64].Type: return try dataStore.readArray(Int64.self) as! T
-        case is [UInt].Type: return try dataStore.readArray(UInt.self) as! T
-        case is [UInt8].Type: return try dataStore.readArray(UInt8.self) as! T
-        case is [UInt16].Type: return try dataStore.readArray(UInt16.self) as! T
-        case is [UInt32].Type: return try dataStore.readArray(UInt32.self) as! T
-        case is [UInt64].Type: return try dataStore.readArray(UInt64.self) as! T
-        case is Data.Type:
-            return try dataStore.readData() as! T
+        return switch type {
+        case is [Double].Type: try dataStore.readArray(Double.self) as! T
+        case is [Float].Type: try dataStore.readArray(Float.self) as! T
+        case is [Int].Type: try dataStore.readArray(Int.self) as! T
+        case is [Int8].Type: try dataStore.readArray(Int8.self) as! T
+        case is [Int16].Type: try dataStore.readArray(Int16.self) as! T
+        case is [Int32].Type: try dataStore.readArray(Int32.self) as! T
+        case is [Int64].Type: try dataStore.readArray(Int64.self) as! T
+        case is [UInt].Type: try dataStore.readArray(UInt.self) as! T
+        case is [UInt8].Type: try dataStore.readArray(UInt8.self) as! T
+        case is [UInt16].Type: try dataStore.readArray(UInt16.self) as! T
+        case is [UInt32].Type: try dataStore.readArray(UInt32.self) as! T
+        case is [UInt64].Type: try dataStore.readArray(UInt64.self) as! T
+        case is Data.Type: try dataStore.readData() as! T
         default:
-            let decoder = _CDRDecoder(dataStore: dataStore, userInfo: userInfo)
-            return try T(from: decoder)
+            try T(from: _CDRDecoder(dataStore: dataStore, userInfo: userInfo))
         }
     }
     
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
-        let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Nested unsupported")
-        throw DecodingError.dataCorrupted(context)
+        let container = try _CDRDecoder.UnkeyedContainer(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
+        return container
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
-        let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Nested unsupported")
-        throw DecodingError.dataCorrupted(context)
+        let container = _CDRDecoder.KeyedContainer<NestedKey>(dataStore: dataStore, codingPath: codingPath, userInfo: userInfo)
+        return KeyedDecodingContainer(container)
     }
     
     func superDecoder() throws -> Decoder {

@@ -42,14 +42,17 @@ extension _CDREncoder.UnkeyedContainer: UnkeyedEncodingContainer {
     }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError("Unimplemented")
+        let container = _CDREncoder.KeyedContainer<NestedKey>(data: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        return KeyedEncodingContainer(container)
+
     }
     
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
-        fatalError("Unimplemented")
+        let container = _CDREncoder.UnkeyedContainer(dataStore: self.dataStore, codingPath: self.codingPath, userInfo: self.userInfo)
+        return container
     }
     
     func superEncoder() -> Encoder {
-        fatalError("Unimplemented")
+        _CDREncoder(data: dataStore, userInfo: userInfo)
     }
 }
