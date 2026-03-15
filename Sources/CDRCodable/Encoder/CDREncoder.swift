@@ -119,7 +119,11 @@ extension _CDREncoder.DataStore {
     func write<T>(value: T) where T: Numeric {
         let alignment = MemoryLayout<T>.alignment
         align(alignment)
-        self.data.append(contentsOf: value.bytes)
+        withUnsafePointer(to: value) { pointer in
+            pointer.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<T>.size) {
+                self.data.append($0, count: MemoryLayout<T>.size)
+            }
+        }
     }
     
     func write(count: Int) throws {
