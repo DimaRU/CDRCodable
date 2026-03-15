@@ -42,7 +42,7 @@ let value = try! decoder.decode([Int16].self, from: data)
 Add the CDRCodable package to your target dependencies in `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/DimaRU/CDRCodable", from: "1.0.0"),
+.package(url: "https://github.com/DimaRU/CDRCodable", from: "2.0.0"),
 ```
 
 
@@ -68,8 +68,8 @@ The following table shows the basic IDL types supported by CDRCodable and how th
 | String  | std::string | string  | string             |
 
 ### 2. Arrays
-Starting from version 1.1.1 CDRCodable supports fixed-size arrays. The high 16 bits of CodingKeys are used for this purpose. Declare CodingKeys as Int and write in the high 16 bits the required array size and property must be declared as Array. The lower 16 bits are not used.  Note: Be careful when numbering CodingKeys! Use [msg2swift](https://github.com/DimaRU/Msg2swift) to create CodingKeys automatically.
-Sample CodingKeys declaration for [sensor_msgs/CameraInfo](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html):
+Starting from version 2.0.0 CDRCodable supports fixed-size arrays by native way using the new `InlineArray` type in Swift 6.2.
+Sample for [sensor_msgs/CameraInfo](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html):
 
 ```swift
 //
@@ -84,26 +84,12 @@ struct CameraInfo: Codable {
     let width: UInt32
     let distortionModel: String
     let d: [Double]
-    let k: [Double]
-    let r: [Double]
-    let p: [Double]
+    let k: [9 of Double]
+    let r: [9 of Double]
+    let p: [12 of Double]
     let binningX: UInt32
     let binningY: UInt32
     let roi: RegionOfInterest
-
-    enum CodingKeys: Int, CodingKey {
-        case header = 1
-        case height = 2
-        case width = 3
-        case distortionModel = 4
-        case d = 5
-        case k = 0x90006
-        case r = 0x90007
-        case p = 0xc0008
-        case binningX = 9
-        case binningY = 10
-        case roi = 11
-    }
 }
 ```
 

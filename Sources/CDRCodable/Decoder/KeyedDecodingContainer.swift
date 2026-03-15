@@ -47,33 +47,6 @@ extension _CDRDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     }
 
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
-        if let intValue = key.intValue, intValue > 0x10000 {
-            let fixedCount = intValue >> 16
-            switch type {
-            case is [Double].Type: return try dataStore.readFixedArray(Double.self, count: fixedCount) as! T
-            case is [Float].Type: return try dataStore.readFixedArray(Float.self, count: fixedCount) as! T
-            case is [Int].Type: return try dataStore.readFixedArray(Int.self, count: fixedCount) as! T
-            case is [Int8].Type: return try dataStore.readFixedArray(Int8.self, count: fixedCount) as! T
-            case is [Int16].Type: return try dataStore.readFixedArray(Int16.self, count: fixedCount) as! T
-            case is [Int32].Type: return try dataStore.readFixedArray(Int32.self, count: fixedCount) as! T
-            case is [Int64].Type: return try dataStore.readFixedArray(Int64.self, count: fixedCount) as! T
-            case is [UInt].Type: return try dataStore.readFixedArray(UInt.self, count: fixedCount) as! T
-            case is [UInt8].Type: return try dataStore.readFixedArray(UInt8.self, count: fixedCount) as! T
-            case is [UInt16].Type: return try dataStore.readFixedArray(UInt16.self, count: fixedCount) as! T
-            case is [UInt32].Type: return try dataStore.readFixedArray(UInt32.self, count: fixedCount) as! T
-            case is [UInt64].Type: return try dataStore.readFixedArray(UInt64.self, count: fixedCount) as! T
-            case is [String].Type:
-                var stringArray: [String] = []
-                stringArray.reserveCapacity(fixedCount)
-                for _ in 0..<fixedCount {
-                    stringArray.append(try dataStore.readString())
-                }
-            default:
-                let context = DecodingError.Context(codingPath: self.codingPath, debugDescription: "Fixed array type is't Array<Numeric> or Array<String>")
-                throw DecodingError.typeMismatch(T.self, context)
-            }
-        }
-
         return switch type {
         case is [Double].Type: try dataStore.readArray(Double.self) as! T
         case is [Float].Type: try dataStore.readArray(Float.self) as! T

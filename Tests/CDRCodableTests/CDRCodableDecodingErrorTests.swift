@@ -75,11 +75,7 @@ class CDRCodableDecodingErrorTests: XCTestCase {
                          0, 0, 0])
         struct TestStruct: Decodable {
             let b: UInt8
-            let a: [Int32]
-            enum CodingKeys: Int, CodingKey {
-                case b = 0
-                case a = 0x10001
-            }
+            let a: [5 of Int32]
         }
         XCTAssertThrowsError(try decoder.decode(TestStruct.self, from: data), "Unexpected end of data") {
             guard case DecodingError.dataCorrupted = $0 else {
@@ -88,21 +84,5 @@ class CDRCodableDecodingErrorTests: XCTestCase {
             }
         }
     }
-    
-    func testDecodeFixedArrayWrongDef() {
-        let data = Data([0,  0, 0, 0,
-                         0, 0, 0, 0])
-        struct TestStruct: Decodable {
-            let a: [Data]
-            enum CodingKeys: Int, CodingKey {
-                case a = 0x10001
-            }
-        }
-        XCTAssertThrowsError(try decoder.decode(TestStruct.self, from: data), "Unexpected end of data") {
-            guard case DecodingError.typeMismatch = $0 else {
-                XCTFail("Wrong error type")
-                return
-            }
-        }
-    }
+
 }

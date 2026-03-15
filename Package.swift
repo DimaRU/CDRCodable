@@ -1,16 +1,16 @@
-// swift-tools-version:5.8
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "CDRCodable",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v26), .iOS(.v26), .visionOS(.v26)],
     products: [
         .library(name: "CDRCodable", targets: ["CDRCodable"]),
         .plugin(name: "Msg2swiftCommand", targets: ["Msg2swiftCommand"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/DimaRU/Msg2swift.git", from: "1.0.0")
+        .package(url: "https://github.com/DimaRU/Msg2swift.git", from: "2.0.0")
     ],
     targets: [
         .target(
