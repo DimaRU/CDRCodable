@@ -149,7 +149,7 @@ class CDRCodablePerformanceTests: XCTestCase {
         let testStruct = TestStruct(array: .init(repeating: -1))
 
         self.measure {
-            for _ in 1...100 {
+            for _ in 1...1000 {
                 let cdrData = try! encoder.encode(testStruct)
                 XCTAssertEqual(cdrData.count, 8000)
             }

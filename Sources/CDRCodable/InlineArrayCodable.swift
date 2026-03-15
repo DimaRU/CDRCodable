@@ -7,9 +7,33 @@ import Foundation
 
 extension InlineArray: @retroactive Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        for index in indices {
-            try container.encode(self[index])
+        if let encoder = encoder as? _CDREncoder {
+            let dataStore = encoder.dataStore
+            dataStore.align(MemoryLayout<Element>.alignment)
+            switch Element.self {
+            case is Double.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Double>) }
+            case is Float.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Float>) }
+            case is Int.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Int>) }
+            case is Int8.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Int8>) }
+            case is Int16.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Int16>) }
+            case is Int32.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Int32>) }
+            case is Int64.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Int64>) }
+            case is UInt.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<UInt>) }
+            case is UInt8.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<UInt8>) }
+            case is UInt16.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<UInt16>) }
+            case is UInt32.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<UInt32>) }
+            case is UInt64.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<UInt64>) }
+            default:
+                var container = encoder.singleValueContainer()
+                for index in indices {
+                    try container.encode(self[index])
+                }
+            }
+        } else {
+            var container = encoder.singleValueContainer()
+            for index in indices {
+                try container.encode(self[index])
+            }
         }
     }
 }

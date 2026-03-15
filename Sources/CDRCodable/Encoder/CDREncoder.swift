@@ -140,6 +140,12 @@ extension _CDREncoder.DataStore {
         align(alignment)
         data.append(pointer.baseAddress!.assumingMemoryBound(to: UInt8.self), count: pointer.count)
     }
+
+    @inline(__always)
+    func encodeArray<Element: Numeric>(pointer: UnsafeBufferPointer<Element>) {
+        align(MemoryLayout<Element>.alignment)
+        data.append(pointer)
+    }
 }
 
 extension _CDREncodingContainer {
