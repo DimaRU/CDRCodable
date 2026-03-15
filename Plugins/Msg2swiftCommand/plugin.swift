@@ -4,7 +4,7 @@ import Foundation
 @main
 struct Msg2swiftCommandPlugin: CommandPlugin {
     func performCommand(context: PluginContext, arguments: [String]) throws {
-        let msg2swiftTool = try context.tool(named: "msg2swift").path
+        let msg2swiftTool = try context.tool(named: "msg2swift").url
         var argExtractor = ArgumentExtractor(arguments)
 
         let targetNames = argExtractor.extractOption(named: "target")
@@ -17,12 +17,12 @@ struct Msg2swiftCommandPlugin: CommandPlugin {
             for target in targets {
                 guard let target = target as? SourceModuleTarget else { continue }
                 runArguments.append("--output-directory")
-                runArguments.append(target.directory.string)
+                runArguments.append(target.directoryURL.path())
                 break
             }
         }
 
-        let process = try Process.run(URL(fileURLWithPath: msg2swiftTool.string), arguments: runArguments)
+        let process = try Process.run(msg2swiftTool, arguments: runArguments)
         process.waitUntilExit()
         
         guard

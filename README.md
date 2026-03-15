@@ -10,7 +10,7 @@ Use [msg2swift](https://github.com/DimaRU/Msg2swift) to automatically generate S
 
 ## Requirements
 
-- Swift 5.8+
+- Swift 6.2+
 
 ## Usage
 
