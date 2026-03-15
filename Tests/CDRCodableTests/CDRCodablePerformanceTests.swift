@@ -142,4 +142,33 @@ class CDRCodablePerformanceTests: XCTestCase {
         }
     }
 
+    func testPerformanceInlineArrayEncode() {
+        struct TestStruct: Codable {
+            let array: [1000 of Int]
+        }
+        let testStruct = TestStruct(array: .init(repeating: -1))
+
+        self.measure {
+            for _ in 1...100 {
+                let cdrData = try! encoder.encode(testStruct)
+                XCTAssertEqual(cdrData.count, 8000)
+            }
+        }
+    }
+
+    func testPerformanceInlineArrayDecode() {
+        struct TestStruct: Codable {
+            let array: [1000 of Int]
+        }
+        let testStruct = TestStruct(array: .init(repeating: -1))
+        let cdrData = try! encoder.encode(testStruct)
+
+        self.measure {
+            for _ in 1...1000 {
+                let testStruct1 = try! decoder.decode(TestStruct.self, from: cdrData)
+                XCTAssertEqual(testStruct1.array[0], -1)
+            }
+        }
+    }
+
 }
