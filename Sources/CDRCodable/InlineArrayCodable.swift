@@ -9,7 +9,6 @@ extension InlineArray: @retroactive Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         if let encoder = encoder as? _CDREncoder {
             let dataStore = encoder.dataStore
-            dataStore.align(MemoryLayout<Element>.alignment)
             switch Element.self {
             case is Double.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Double>) }
             case is Float.Type: span.withUnsafeBufferPointer { dataStore.encodeArray(pointer: $0 as! UnsafeBufferPointer<Float>) }
