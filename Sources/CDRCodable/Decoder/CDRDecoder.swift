@@ -167,16 +167,16 @@ extension DataStore {
     }
     
     @inline(__always)
-    func readFixedArray<T>(_ type: T.Type, count: Int) throws -> [T] where T: Numeric {
+    func readFixedArray<T: Decodable>(_ os: inout OutputSpan<T>) throws {
         align(to: MemoryLayout<T>.alignment)
+        let count = os.capacity
         let stride = MemoryLayout<T>.stride
         try checkDataEnd(count * stride)
-        defer {
-            cursor = cursor.advanced(by: count * stride)
-        }
-        return Array<T>.init(unsafeUninitializedCapacity: count) {
-            let _: Int = data.copyBytes(to: $0, from: cursor...)
-            $1 = count
+        let start = cursor
+        cursor = cursor.advanced(by: count * stride)
+        os.withUnsafeMutableBufferPointer{ ptr, initializedCount in
+            data.copyBytes(to: ptr, from: start..<cursor)
+            initializedCount = ptr.count
         }
     }
 }
